@@ -66,7 +66,8 @@ more detailed information for debugging and validation.
 **Never create a PR using the GitHub CLI (`gh`) unless directly asked to do so.**
 PRs must be made using click-ops to conform to organizational git processes.
 
-Generally, refrain from using the GitHub CLI (`gh`) unless explicitly asked.
+Use the GitHub CLI (`gh`) for issues (see "Issues" in `AGENTS.md`); otherwise refrain from it
+unless explicitly asked.
 
 ### CI/CD Awareness
 
