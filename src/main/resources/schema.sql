@@ -56,3 +56,13 @@ CREATE TABLE IF NOT EXISTS talk_co_speaker (
     speaker_id INTEGER NOT NULL,
     UNIQUE (talk_id, speaker_id)
 );
+
+-- 2026-11 workshop registration; id gives the order they registered in, email_key the same person
+CREATE TABLE IF NOT EXISTS workshop_registration (
+    id        BIGSERIAL PRIMARY KEY,
+    talk_id   INTEGER NOT NULL,
+    name      TEXT NOT NULL,
+    email     TEXT NOT NULL,
+    email_key TEXT NOT NULL,
+    UNIQUE (talk_id, email_key)
+);

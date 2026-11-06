@@ -1,7 +1,7 @@
 # Plan: Workshop registration
 
 - [x] Phase 0: Commit the approved spec, this plan and its review
-- [ ] Phase 1: Registrations table, `POST` and `GET /workshops/{id}/registrations`, eligibility and validation
+- [x] Phase 1: Registrations table, `POST` and `GET /workshops/{id}/registrations`, eligibility and validation
 - [ ] Phase 2: Capacity, duplicates, a real rush, and the lock test
 - [ ] Phase 3: Hurl example in `examples/`
 - [ ] Phase 4: Update `docs/`, raise the coverage floor, finish (draft claim-log row, plan to done)
