@@ -1,6 +1,6 @@
 # Plan: Programme export (`GET /programme`, `GET /programme.csv`)
 
-- [ ] Phase 1: `ProgrammeCsv`, the RFC 4180 writer, with unit tests (no database, no scheduling needed)
+- [x] Phase 1: `ProgrammeCsv`, the RFC 4180 writer, with unit tests (no database, no scheduling needed)
 - [ ] Phase 0: Gate. Scheduling (#16) code available; rebase, fill in the names, D1–D9 approved (blocks Phases 2–5)
 - [ ] Phase 2: `ProgrammeDao`, `ProgrammeRow`, `ProgrammeController` and HTTP tests, one commit
 - [ ] Phase 3: Hurl example `examples/programme-export.hurl` that cleans up after itself, prod-like run twice
