@@ -41,8 +41,8 @@ exhaust threads or the 5-connection pool.
    means 409.
 4. A "thank you" notification is logged, and the talk is re-read with its rating stats.
 
-**Rate a talk** (`PUT /talks/{id}/ratings/{reviewerId}`): validates `reviewerId` and `score`, checks
-the talk exists, then upserts with `INSERT … ON CONFLICT (talk_id, reviewer_id) DO UPDATE`, so a
+**Rate a talk** (`PUT /talks/{id}/ratings/{reviewerId}`): validates `reviewerId`, checks the talk
+exists (404), validates `score`, then upserts with `INSERT … ON CONFLICT (talk_id, reviewer_id) DO UPDATE`, so a
 reviewer has at most one rating per talk even under concurrent requests.
 
 **Read a talk**: `TalkDao` loads the row, then `ConferenceService.addRatings` adds `ratingCount` and

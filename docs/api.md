@@ -103,15 +103,17 @@ descending, then `id` ascending; unrated talks last, by `id`. Any other `sort` v
 {"score": 4}
 ```
 
-Checks, in this order: `reviewerId` ≥ 1 (400); `score` is a JSON integer (400, so `4.0` and `"4"`
-are rejected); `score` in 1–5 (400); talk exists (404). A reviewer rating the same talk again
-replaces their earlier score.
+Before the service runs, Spring rejects a missing, non-JSON or non-object body (400), a
+non-numeric `reviewerId` (400) and a non-JSON `Content-Type` (415). Then, in this order:
+`reviewerId` ≥ 1 (400); talk exists (404); `score` is a JSON integer (400, so `4.0` and `"4"` are
+rejected); `score` in 1–5 (400). A reviewer rating the same talk again replaces their earlier score.
 
 ```json
 {"talkId": 7, "reviewerId": 1, "score": 4, "ratedAtDisplay": "11/6/26, 1:05 PM"}
 ```
 
-`ratedAtDisplay` is the rating time in UTC, US short format.
+`ratedAtDisplay` is the rating time in UTC, as `M/d/yy, h:mm a` with an ordinary space before
+AM/PM.
 
 ## Admin and operations
 
