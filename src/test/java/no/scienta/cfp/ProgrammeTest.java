@@ -8,8 +8,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -34,6 +37,7 @@ import no.scienta.cfp.Venue.Slot;
 class ProgrammeTest {
 
     private static final ObjectMapper JSON = new ObjectMapper();
+    private static final int ROUNDS = 10;
 
     @DynamicPropertySource
     static void database(DynamicPropertyRegistry registry) {
@@ -227,6 +231,62 @@ class ProgrammeTest {
         assertEquals(1, entries());
     }
 
+    // ---------------------------------------------------------------- concurrency (D19)
+
+    @Test
+    void concurrentPutsIntoOnePlace() throws Exception {
+        for (int round = 0; round < ROUNDS; round++) {
+            emptyProgramme();
+            List<Long> talks = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                talks.add(acceptedTalk("PRESENTATION"));
+            }
+            List<HttpResponse<String>> responses = all(talks.stream().map(talk -> scheduleAsync("R1", "S1", talk)));
+            assertOneWinner(responses, SchedulingRules.TAKEN);
+            long winner = JSON.readTree(winner(responses).body()).get("talkId").asLong();
+            assertEquals(winner, talkIn("R1", "S1"));
+            assertEquals(1, entries());
+        }
+    }
+
+    @Test
+    void concurrentPutsOfOneTalkIntoTwoPlaces() throws Exception {
+        for (int round = 0; round < ROUNDS; round++) {
+            emptyProgramme();
+            long talk = acceptedTalk("PRESENTATION");
+            assertOneWinner(all(Stream.of(scheduleAsync("R1", "S1", talk), scheduleAsync("R2", "S2", talk))),
+                    SchedulingRules.ELSEWHERE);
+            assertEquals(1, entries());
+        }
+    }
+
+    @Test
+    void concurrentSharedSpeakerInOneSlot() throws Exception {
+        for (int round = 0; round < ROUNDS; round++) {
+            emptyProgramme();
+            long speaker = newSpeaker();
+            long first = acceptedTalk(speaker, "PRESENTATION");
+            long second = acceptedTalk(speaker, "PRESENTATION");
+            assertOneWinner(all(Stream.of(scheduleAsync("R1", "S3", first), scheduleAsync("R2", "S3", second))),
+                    SchedulingRules.CLASH);
+            assertEquals(1, entries());
+        }
+    }
+
+    @Test
+    void concurrentSamePutTwice() throws Exception {
+        for (int round = 0; round < ROUNDS; round++) {
+            emptyProgramme();
+            long talk = acceptedTalk("PRESENTATION");
+            List<HttpResponse<String>> responses =
+                    all(Stream.of(scheduleAsync("R1", "S2", talk), scheduleAsync("R1", "S2", talk)));
+            for (HttpResponse<String> res : responses) {
+                assertEquals(200, res.statusCode(), res.body());
+            }
+            assertEquals(1, entries());
+        }
+    }
+
     @Test
     void lockingASlotFailsLoudlyWithoutItsSeedRow() {
         jdbc.update("DELETE FROM programme_slot WHERE slot = 'S5'");
@@ -239,6 +299,33 @@ class ProgrammeTest {
     }
 
     // ---------------------------------------------------------------- helpers
+
+    private CompletableFuture<HttpResponse<String>> scheduleAsync(String room, String slot, long talk) {
+        return http.sendAsync(request("PUT", "/programme/" + room + "/" + slot, talkIdBody(talk), "application/json"),
+                HttpResponse.BodyHandlers.ofString());
+    }
+
+    private static List<HttpResponse<String>> all(Stream<CompletableFuture<HttpResponse<String>>> sent) {
+        return sent.toList().stream().map(CompletableFuture::join).toList();
+    }
+
+    /**
+     * Exactly one 200; every other response is the 409 it would get if it came second (D19).
+     */
+    private static void assertOneWinner(List<HttpResponse<String>> responses, String loserReason) {
+        assertEquals(1, responses.stream().filter(res -> res.statusCode() == 200).count(), bodies(responses));
+        responses.stream()
+                .filter(res -> res.statusCode() != 200)
+                .forEach(res -> assertError(409, loserReason, res));
+    }
+
+    private static HttpResponse<String> winner(List<HttpResponse<String>> responses) {
+        return responses.stream().filter(res -> res.statusCode() == 200).findFirst().orElseThrow();
+    }
+
+    private static String bodies(List<HttpResponse<String>> responses) {
+        return responses.stream().map(res -> res.statusCode() + " " + res.body()).toList().toString();
+    }
 
     private static String talkIdBody(long talk) {
         return "{\"talkId\":" + talk + "}";
@@ -304,6 +391,10 @@ class ProgrammeTest {
     }
 
     private HttpResponse<String> send(String method, String path, String body, String contentType) throws Exception {
+        return http.send(request(method, path, body, contentType), HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpRequest request(String method, String path, String body, String contentType) {
         HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
                 .method(method, body == null
                         ? HttpRequest.BodyPublishers.noBody()
@@ -311,6 +402,6 @@ class ProgrammeTest {
         if (contentType != null) {
             request.header("Content-Type", contentType);
         }
-        return http.send(request.build(), HttpResponse.BodyHandlers.ofString());
+        return request.build();
     }
 }

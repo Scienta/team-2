@@ -4,7 +4,7 @@
 - [x] Phase 1: The venue and the rules as pure code (`Venue`, `SchedulingRules`), with unit tests
 - [x] Phase 2: `PUT` and `GET /programme/{room}/{slot}` (D1 to D10, D13 to D18, D20), with `ProgrammeTest`. The `DuplicateKeyException` → 409 path moved to Phase 4, with the concurrency tests that reach it
 - [x] Phase 3: `DELETE /programme/{room}/{slot}` (D11, D12, D18)
-- [ ] Phase 4: Concurrency (D19): tests that assert the loser's reason, so removing either lock fails one; green 3 runs in a row; then offer the push
+- [x] Phase 4: Concurrency (D19): tests that assert the loser's reason, so removing either lock fails one; green 3 runs in a row; then offer the push. Without the slot lock: `concurrentPutsIntoOnePlace` gets a 500 (primary key) and `concurrentSharedSpeakerInOneSlot` two 200s. Without the talk lock: `concurrentPutsOfOneTalkIntoTwoPlaces` gets a 500 (`UNIQUE (talk_id)`). With both: 36/36 green 3 runs in a row. The `DuplicateKeyException` → 409 catch (step 0) is not added: with the locks it can't happen, and without them the tests already fail on the 500; see the note in step 0
 - [ ] Phase 5: Hurl examples: a deploy-safe `examples/scheduling.hurl` and a local-only happy path
 - [ ] Phase 6: Update `docs/`, finish (update from `main`, coverage floor, `REVIEW.md`, plan to done)
 
@@ -180,7 +180,8 @@ Check: `./mvnw test -Dtest=ProgrammeTest` green; `./mvnw package` green. Commit:
 ## Phase 4: Concurrency (D19)
 
 0. In `ProgrammeService.schedule`, catch `DuplicateKeyException` on insert → 409 with P3's reason
-   (moved here from Phase 2).
+   (moved here from Phase 2). **Not done:** the locks make it unreachable, so it would be an untested line; the
+   constraints still guard the data, and a 500 makes a broken lock visible. Decision for the human.
 1. In `ProgrammeTest`, start the requests together with `CompletableFuture`, in 10 rounds. **Each
    round** (S3): `TRUNCATE programme_entry` and new talks with new speakers. Each test asserts the
    loser's reason, D19's "the 409 it would get if it came second" (S2):
