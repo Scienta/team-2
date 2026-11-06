@@ -31,7 +31,10 @@ and the claim):
    score validation).
 5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
    tests and Hurl examples, one commit per phase, no broken windows.
-6. **PR in the GitHub UI**, merge to `main` deploys, check `/health` shows the new SHA.
+6. **PR in the GitHub UI**, with a risk list from [`/list-risks`](.claude/skills/list-risks/SKILL.md):
+   what the harness could see differently from our guesses, and what to watch after the deploy
+   (first used on PR #12, acceptance). Merge to `main` deploys; check `/health` shows the new SHA,
+   then check each listed risk on the harness.
 7. **Evidence, then a person claims**, then a row in the claim log below.
 
 The whole flow on one screen: [`workflow/README.md`](workflow/README.md). Team rules for agents:
@@ -125,6 +128,10 @@ current status, not the timeline.
 - **Coverage ratchet** [`workflow/coverage/`](workflow/coverage/README.md): JaCoCo `check` with a
   floor property in `pom.xml` that only goes up, plus a script that prints the value to raise it
   to. No extra tools, works on any Maven project.
+- **Risk list skill** [`.claude/skills/list-risks/`](.claude/skills/list-risks/SKILL.md): every
+  behaviour change ships with a list of what could break on the harness, ordered by likelihood, each
+  with the fallback, and is checked off after the deploy. Works for any change where an external
+  checker or client sees behaviour the spec didn't pin down.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
 

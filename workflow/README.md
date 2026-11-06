@@ -11,7 +11,8 @@ feature request on the harness
   → /make-plan                  phased, restart-proof plan           plans/todo/<slug>_plan.md
   → plan-reviewer (or another tool) reviews it, the plan answers     plans/todo/<slug>_plan_review.md
   → /execute-plan               phase by phase, tests, one commit each
-  → PR in the GitHub UI → merge to main deploys → /health shows the SHA
+  → /list-risks                 what the harness could see differently  PR description
+  → PR in the GitHub UI → merge to main deploys → /health shows the SHA → check each risk
   → /pre-claim                  checklist with evidence              workflow/checklists/pre-claim.md
   → a person claims on the harness (permanent)
   → claim-log row in REVIEW.md §3; harness surprises in §4
@@ -31,7 +32,7 @@ feature request on the harness
 | [`coverage/`](coverage/) | JaCoCo line coverage ratchet: the build fails if coverage drops; `line-coverage.sh` prints it |
 | [`./adrs/`](./adrs/) | Architecture decision records |
 | [`../.claude/rules/`](../.claude/rules/) | Team rules: `team-workflow.md`, `project.md` |
-| [`../.claude/skills/`](../.claude/skills/) | `make-plan`, `make-master-plan`, `execute-plan`, `spec-from-request`, `pre-claim` |
+| [`../.claude/skills/`](../.claude/skills/) | `make-plan`, `make-master-plan`, `execute-plan`, `spec-from-request`, `list-risks`, `pre-claim` |
 | [`../.claude/agents/`](../.claude/agents/) | `plan-reviewer`, `spec-checker` |
 | [`../.claude/settings.json`](../.claude/settings.json) | Shared permissions; agents can't read the harness token |
 
