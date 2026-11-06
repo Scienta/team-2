@@ -22,9 +22,9 @@ binding. What follows is how this team works; where it conflicts with those fact
 
 - Read README.md for project overview
 - Read .claude/rules/project.md for project-specific development guidelines
-- Read skills/making_a_plan.md for planning methodology
-- Read skills/phase_execution.md for execution patterns
-- Read any other markdown files in `skills/*.md`
+- Read `.claude/skills/make-plan/SKILL.md` (`/make-plan`) for planning methodology
+- Read `.claude/skills/execute-plan/SKILL.md` (`/execute-plan`) for execution patterns
+- Skim the other skills in `.claude/skills/*/SKILL.md` and the agents in `.claude/agents/`
 
 IF there is a LOCAL.md file, read that too. This shall contain information
 local to the current developer's preferences.
@@ -101,8 +101,8 @@ When you make changes to files:
 ## Planning and Execution
 
 When planning how to implement a feature or complete a task:
-1. Follow the instructions in `skills/making_a_plan.md`
-2. When executing the plan, follow the instructions in `skills/phase_execution.md`
+1. Follow the `make-plan` skill (`.claude/skills/make-plan/SKILL.md`; `make-master-plan` for large tasks)
+2. When executing the plan, follow the `execute-plan` skill (`.claude/skills/execute-plan/SKILL.md`)
 
 This structured approach helps maintain clarity and enables recovery from context resets.
 

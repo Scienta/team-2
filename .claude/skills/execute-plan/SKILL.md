@@ -1,3 +1,8 @@
+---
+name: execute-plan
+description: Execute the next unchecked phases of a plan, test-gated, one commit per phase.
+---
+
 
 # Executing according to a plan
 
@@ -14,6 +19,8 @@ the optimal implementation sequence.
 
 When executing a plan, do as follows:
 
+0. `docker info`; if Docker isn't running, stop and tell the human. Read `LOCAL.md` if it
+   exists (machine-specific build settings).
 1. Identify the first non-checked item in the checklist
 2. Follow the recipe in the plan for that item
 3. When completed, add at least one test for the new function

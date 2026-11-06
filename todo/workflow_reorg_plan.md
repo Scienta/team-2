@@ -7,7 +7,7 @@ Must-have (secures eligibility, about 30 min):
 - [x] Phase 3: Split `AGENTS.md`: team half to `.claude/rules/team-workflow.md`, imperative pointer and non-negotiables stay
 
 Optional tail (as budget allows, in this order):
-- [ ] Phase 4: Turn the planning skills into Claude Code skills (`.claude/skills/*/SKILL.md`)
+- [x] Phase 4: Turn the planning skills into Claude Code skills (`.claude/skills/*/SKILL.md`)
 - [ ] Phase 5: Gate scripts in `workflow/scripts/` (REVIEW check, stale-path check, harness client), with a test
 - [ ] Phase 6: Process artifacts: spec and plan templates, pre-claim checklist, skills `spec-from-request` and `pre-claim`
 - [ ] Phase 7: Review agents (`plan-reviewer`, `spec-checker`), `.claude/settings.json`, `workflow/README.md`

@@ -19,16 +19,17 @@ and the claim):
 
 1. **Spec.** Copy the harness spec or feature request into [`workflow/specs/`](workflow/specs/).
    A feature request isn't a spec, so the plan lists every open decision (status codes, edge cases).
-2. **Plan.** An agent writes a phased, restart-proof plan with the `making_a_plan` skill (becoming
-   `/make-plan`): a checklist on top, a "read this after a restart" context block, the decisions
-   for a human, and a falsifiable "Check:" per phase. Plans live in `todo/` (moving to
+2. **Plan.** An agent writes a phased, restart-proof plan with the
+   [`/make-plan`](.claude/skills/make-plan/SKILL.md) skill: a checklist on top, a "read this
+   after a restart" context block, the decisions for a human (flagging those to ask the product
+   owner), and a falsifiable "Check:" per phase. Plans live in `todo/` (moving to
    `workflow/plans/`).
 3. **Review the plan.** A second agent, often a different tool, reviews the plan and writes
    `<feature>_plan_review.md` next to it; the first agent revises. Examples:
    `todo/ratings_plan_review.md`, `todo/workflow_reorg_plan_review.md`.
 4. **Human approves the decisions** (e.g. E1 in the ratings plan: a missing talk gives 404 before
    score validation).
-5. **Execute** with the `phase_execution` skill (becoming `/execute-plan`): one phase at a time,
+5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
    tests and Hurl examples, one commit per phase, no broken windows.
 6. **PR in the GitHub UI**, merge to `main` deploys, check `/health` shows the new SHA.
 7. **Evidence, then a person claims**, then a row in the claim log below.
@@ -75,9 +76,9 @@ workflow: open status-code decisions on a drip feature go to the product owner b
 
 ## 5. Reusable artifacts
 
-- **Plan skill** `skills/making_a_plan.md` (becoming `.claude/skills/make-plan/`): restart-proof
+- **Plan skill** [`.claude/skills/make-plan/`](.claude/skills/make-plan/SKILL.md): restart-proof
   plans with a decisions list for the human.
-- **Execution skill** `skills/phase_execution.md` (becoming `.claude/skills/execute-plan/`): phase
+- **Execution skill** [`.claude/skills/execute-plan/`](.claude/skills/execute-plan/SKILL.md): phase
   by phase, test-gated, one commit per phase.
 - **Cross-tool plan review** (`todo/*_plan_review.md`): Blocking / Significant / Minor / What's good,
   with file:line.

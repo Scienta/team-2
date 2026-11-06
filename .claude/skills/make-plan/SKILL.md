@@ -1,3 +1,8 @@
+---
+name: make-plan
+description: Write a phased, restart-proof plan for a feature or chore into todo/ (workflow/plans/todo/ after the reorg). Use before implementing any harness feature.
+---
+
 
 # How to make a plan
 
@@ -16,9 +21,15 @@
    of check-box items.
 
 A feature request isn't a spec: if the plan has to decide status codes, edge cases or
-error handling, list those decisions in the plan so the human can check them.
+error handling, list those decisions in the plan so the human can check them. Mark every
+decision on behaviour the harness checks (status codes, idempotency, error cases) as
+**"ask the product owner"**: a person asks before the claim. Our co-speakers claim failed two
+checks on exactly such decisions (`REVIEW.md` §4).
 
 ## After making the plan
 
 7. As a separate activity, go over the plan and make sure it can
    withstand a restart with a cleared context (in addition to AGENTS.md).
+8. Have a second agent review the plan (the `plan-reviewer` agent, or another tool such as
+   Copilot CLI). It writes its findings to `<feature>_plan_review.md` next to the plan; revise
+   the plan and add a "Review response" table mapping each finding to its fix.
