@@ -104,6 +104,17 @@ fits in the unique index on `email_key`. A random email of the same length gave 
 tests green. Fix: at most 254 characters, 400 above that (D13). Without the check, this would have
 been a claimed feature answering 500.
 
+**What the scheduling plan review caught** (`workflow/plans/done/scheduling_plan_review.md`): B1, the
+plan answered 200 for "already in this place" before checking the talk was still accepted, against
+the approved error order (D13): a talk scheduled, then withdrawn, then put back in its own place would
+have got 200 instead of 409. B2, the Hurl example would have written to the deployed programme, which
+has only 15 places and is shared with the harness: a failed run would have left talks behind and made
+the harness's own checks fail. Fixed before any code: the rules return the whole D13 outcome
+(`SchedulingRulesTest.aNotAcceptedTalkInItsOwnPlaceIsAViolation`), and `examples/scheduling.hurl`
+never writes, with the happy path in `examples/local/`. S2: the talk lock would have gone untested,
+since the unique key also stops that race; the concurrency tests now assert the loser's reason, and
+removing either lock fails one of them.
+
 **Bug a person's PR review caught:** the coverage ratchet (PR #8) checked each branch against its
 own floor. The reviewer pointed out that two parallel PRs can each pass and still break `main`
 together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: update the branch with
@@ -166,6 +177,7 @@ mutation check confirmed the test fails without the fix.
 | Spring Boot 4 | claimed | 163 | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. After deploy (`e0a9680`, live ~13:58): base checks OK for ~10 ticks before the claim, `/pre-claim` all items pass, logs clean, 7/7 Hurl files green against our URL. After the claim: spring-boot-4 check-1 and check-2 OK at tick 166, all other claimed checks OK, no bleed |
 | Acceptance | claimed | 148 | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16; `/pre-claim` all 7 items pass (deploy `50ea65c` live, 6/6 Hurl files green against our URL, 18/18 checks of claimed features OK at tick 147). After the claim: acceptance check-1 to check-5 all OK at tick 150, no bleed. No check failed on D5, D6 or D7 (the harness doesn't say which rules its checks exercise) |
 | Workshop registration | not claimed yet | TODO(human): tick | `WorkshopRegistrationTest` (24 tests: a rush of 60 gives exactly 20 registrations, a registration waiting for the lock sees a withdrawal; the lock tests go red with the lock removed), `examples/workshop-registration.hurl` against a local service, `workflow/plans/done/workshop_registration_plan.md`. Deployed as `42ac64e` (`/health`), `examples/run.sh` against our URL 8 of 8 files with Hurl 8.1.0. The harness shows no checks for it until claimed. TODO(human): harness status after the claim |
+| Scheduling | not claimed yet | TODO(human): tick | `ProgrammeTest` (36 tests: D1–D20, 4 concurrency tests × 10 rounds; without the slot lock or the talk lock at least one fails), `SchedulingRulesTest` and `VenueTest` (48 tests), new code 100 % line and branch covered, `examples/scheduling.hurl` (never writes) and `examples/local/scheduling-happy-path.hurl` green twice against a local service, `workflow/plans/done/scheduling_plan.md`. Not yet deployed or run against our URL. TODO(human): harness status after the deploy |
 
 ## 4. What the harness caught that we didn't
 
@@ -193,6 +205,13 @@ happened again at tick 126: 7 checks, bleed −37.83 to −41.93, as the rollout
 shut down the old revision at 13:33:19Z. Tick 102 (two checks, also `POST /speakers`, no response
 recorded) came soon after the deploy of `33ad4c3`. We didn't see this because we only looked at
 current status, not the timeline.
+
+**Workshop registration, claimed at tick 205, check-2 FAULTY from tick 206.** The transcript's
+failing request: `POST /workshops/{id}/registrations` for an accepted `LIGHTNING_10` talk, which we
+answered 404 "workshop not found" (decision D2: "it isn't a workshop, so that resource doesn't
+exist"). The harness wants something else. Our tests pinned our own guess, and the risk list didn't
+flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4). After that deploy (tick 217) check-2 got past the `POST` and failed on the next request, `GET` on the same talk (404, flagged as a risk in PR #38); second fix: 200 `[]`.
+TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
 
 ## 5. Reusable artifacts
 

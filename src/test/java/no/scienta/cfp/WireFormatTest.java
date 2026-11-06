@@ -33,7 +33,7 @@ class WireFormatTest {
     private static final Pattern ID = Pattern.compile("\"id\":(\\d+)");
     private static final Pattern KEY = Pattern.compile("\"(\\w+)\":");
     private static final String TIMESTAMP = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}\\+00:00";
-    private static final List<String> TALK_KEYS = Arrays.asList("id", "title", "format", "level", "speakerId",
+    static final List<String> TALK_KEYS = Arrays.asList("id", "title", "format", "level", "speakerId",
             "durationMinutes", "status", "submittedAt", "submittedOn", "averageRating", "ratingCount", "coSpeakerIds");
     private static final List<String> ERROR_KEYS = Arrays.asList("timestamp", "status", "error", "message", "path");
 
@@ -187,7 +187,7 @@ class WireFormatTest {
         return body.substring(1, body.length() - 1);
     }
 
-    private static List<String> keys(String body) {
+    static List<String> keys(String body) {
         List<String> keys = new ArrayList<>();
         Matcher m = KEY.matcher(body);
         while (m.find()) {

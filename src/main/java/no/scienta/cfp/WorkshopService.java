@@ -32,7 +32,9 @@ public class WorkshopService {
 
     @Transactional
     public RegistrationDto register(long workshopId, Map<String, Object> body) {
-        requireWorkshop(workshopId);
+        if (talkDao.findById(workshopId) == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "workshop not found");
+        }
         String name = requireText(body, "name");
         String email = requireText(body, "email");
         String trimmedEmail = trim(email);
@@ -41,7 +43,12 @@ public class WorkshopService {
         }
         talkDao.lock(workshopId);
         // A new read, not the talk from before the lock: a withdrawal may have committed while we waited for it.
-        String status = talkDao.findById(workshopId).status;
+        TalkDto talk = talkDao.findById(workshopId);
+        // D2 (revised after harness check-2): a talk that isn't a workshop exists, but takes no registrations
+        if (!talk.format.equals("WORKSHOP")) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "a " + talk.format + " talk isn't a workshop");
+        }
+        String status = talk.status;
         if (!status.equals("ACCEPTED")) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "a " + status + " workshop doesn't take registrations");
         }
@@ -60,16 +67,12 @@ public class WorkshopService {
         return registration;
     }
 
+    // D2 (revised after harness check-2): a talk that isn't a workshop lists no registrations
     public List<RegistrationDto> registrations(long workshopId) {
-        requireWorkshop(workshopId);
-        return registrationDao.findByWorkshop(workshopId);
-    }
-
-    private void requireWorkshop(long id) {
-        TalkDto talk = talkDao.findById(id);
-        if (talk == null || !talk.format.equals("WORKSHOP")) {
+        if (talkDao.findById(workshopId) == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "workshop not found");
         }
+        return registrationDao.findByWorkshop(workshopId);
     }
 
     private static String requireText(Map<String, Object> body, String field) {

@@ -11,7 +11,8 @@ This is the short version.
 
 Docker must be running: the tests start Postgres with Testcontainers (`TestDatabase`). Test classes:
 `SpeakersTest`, `TalksTest`, `RatingsTest`, `TalkListRatingsTest`, `CoSpeakersTest`,
-`AcceptanceTest`, `ConferenceServiceTest`, `HealthTest`, `UtilsTest`.
+`AcceptanceTest`, `ConferenceServiceTest`, `HealthTest`, `UtilsTest`, `ProgrammeTest`,
+`SchedulingRulesTest`, `VenueTest`.
 
 ## Run locally
 
@@ -22,7 +23,11 @@ examples/run.sh                      # Hurl happy-path examples (needs hurl)
 ```
 
 `examples/*.hurl` are the base specs' published happy paths only, not what the harness checks. Add
-your own `.hurl` files there for drip features and edge cases; `run.sh` picks them all up.
+your own `.hurl` files there for drip features and edge cases; `run.sh` picks them all up. It also
+runs them against our deployed URL (`/pre-claim`), so a file in `examples/` must be safe there.
+`examples/local/` holds examples that write shared state (the programme has only 15 places, which the
+harness uses too); `run.sh` doesn't run them:
+`hurl --test --variable base_url=http://localhost:8080 examples/local/*.hurl`.
 
 ## Deploy
 
