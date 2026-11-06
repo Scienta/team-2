@@ -145,6 +145,16 @@ Merging `main` (coverage ratchet, PR #8) into the Boot 4 branch turned up two mo
   measured 0.772, so the floor the script recommended failed the build. The script now reads the
   report-wide total from `jacoco.xml`, the same number the gate uses.
 
+**The spec-based Hurl suite caught a claimed feature breaking its spec before the harness did**
+(issue #33). Writing `examples/speakers-rules.hurl` from "a speaker needs a real name and a real
+email" (PR #30) showed that `POST /speakers` answered 201 for `"email": "not-an-email"` and for
+`"name": 5`, which it stored as `"5"`. The harness hadn't flagged it, but speakers is claimed, so a
+check probing it would have bled points from then on. Fixed in `43579db`: one e-mail rule shared
+with workshop registration, strings only for `name` and `email`, no blank names with Unicode
+spaces (decisions D1–D5 in `workflow/specs/speakers.md`). The 23 `POST /speakers` bodies the
+harness has sent are kept as a test resource and must stay 201 (`SpeakerValidationTest`), and a
+mutation check confirmed the test fails without the fix.
+
 ## 3. Claim log
 
 | Feature | Claimed or skipped | Tick | Evidence before claiming |
