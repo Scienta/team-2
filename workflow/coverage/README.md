@@ -12,7 +12,8 @@ nothing is excluded.
 
 - `index.html`: browse by package, class and source line (green covered, red missed, yellow
   partly covered branches)
-- `jacoco.csv` and `jacoco.xml`: the same numbers for scripts
+- `jacoco.csv` and `jacoco.xml`: the same numbers for scripts (`line-coverage.sh` reads the report-wide
+  total from `jacoco.xml`, the number the check uses; summing `jacoco.csv` rows can count a line twice)
 
 `./mvnw package -DskipTests` (what the `Dockerfile` runs) writes no report.
 
@@ -24,9 +25,9 @@ workflow/coverage/line-coverage.sh
 ```
 
 ```
-Lines covered: 278/385 (72.2 %)
-Ratio:         0.722 (rounded down, the value for coverage.line.minimum)
-Floor in pom:  0.722
+Lines covered: 340/430 (79.1 %)
+Ratio:         0.790 (rounded down, the value for coverage.line.minimum)
+Floor in pom:  0.790
 ```
 
 ## The ratchet

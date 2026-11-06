@@ -1,0 +1,156 @@
+### POST /speakers {"name":"ada","email":"<email>"}
+201 application/json;charset=UTF-8
+{"id":"<id>","name":"ada","email":"<email>","bio":null}
+### POST /speakers {"name":"barbara","email":"<email>"}
+201 application/json;charset=UTF-8
+{"id":"<id>","name":"barbara","email":"<email>","bio":null}
+### POST /speakers/ {"name":"Carl","email":"<email>","bio":"Trailing slash"}
+201 application/json;charset=UTF-8
+{"id":"<id>","name":"Carl","email":"<email>","bio":"Trailing slash"}
+### POST /speakers (comment) /* a comment */ {"name":"Dag","email":"<email>"}
+201 application/json;charset=UTF-8
+{"id":"<id>","name":"Dag","email":"<email>","bio":null}
+### POST /speakers (duplicate e-mail) {"name":"Ada","email":"<email>"}
+409 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":409,"error":"Conflict","message":"email already registered","path":"/speakers"}
+### POST /speakers (blank name) {"name":"","email":"<email>"}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"<framework-message>","errors":[{"codes":["NotBlank.speakerForm.name","NotBlank.name","NotBlank.java.lang.String","NotBlank"],"arguments":[{"codes":["speakerForm.name","name"],"arguments":null,"defaultMessage":"name","code":"name"}],"defaultMessage":"must not be blank","objectName":"speakerForm","field":"name","rejectedValue":"","bindingFailure":false,"code":"NotBlank"}],"path":"/speakers"}
+### POST /speakers (bio too long) {"name":"Eve","email":"<email>","bio":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"<framework-message>","errors":[{"codes":["Size.speakerForm.bio","Size.bio","Size.java.lang.String","Size"],"arguments":[{"codes":["speakerForm.bio","bio"],"arguments":null,"defaultMessage":"bio","code":"bio"},500,0],"defaultMessage":"size must be between 0 and 500","objectName":"speakerForm","field":"bio","rejectedValue":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","bindingFailure":false,"code":"Size"}],"path":"/speakers"}
+### GET /speakers/{a}
+200 application/json;charset=UTF-8
+{"id":"<id>","name":"ada","email":"<email>","bio":null}
+### GET /speakers/{a}/
+200 application/json;charset=UTF-8
+{"id":"<id>","name":"ada","email":"<email>","bio":null}
+### GET /speakers/999999
+404 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":404,"error":"Not Found","message":"speaker not found","path":"/speakers/<n>"}
+### GET /speakers/abc
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"<framework-message>","path":"/speakers/abc"}
+### POST /talks {"title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":<id>}
+201 application/json;charset=UTF-8
+{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}
+### POST /talks (durationMinutes ignored) {"title":"Lightning","format":"LIGHTNING_10","level":"ADVANCED","speakerId":<id>,"durationMinutes":999}
+201 application/json;charset=UTF-8
+{"id":"<id>","title":"Lightning","format":"LIGHTNING_10","level":"ADVANCED","speakerId":"<id>","durationMinutes":10,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}
+### POST /talks {"title":"Workshop","format":"WORKSHOP","level":"BEGINNER","speakerId":<id>}
+201 application/json;charset=UTF-8
+{"id":"<id>","title":"Workshop","format":"WORKSHOP","level":"BEGINNER","speakerId":"<id>","durationMinutes":120,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}
+### POST /talks (fourth talk) {"title":"Fourth","format":"LIGHTNING_20","level":"BEGINNER","speakerId":<id>}
+409 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":409,"error":"Conflict","message":"a speaker can submit at most 3 talks","path":"/talks"}
+### POST /talks (bad format) {"title":"X","format":"KEYNOTE","level":"BEGINNER","speakerId":<id>}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"format must be one of [WORKSHOP, PRESENTATION, LIGHTNING_20, LIGHTNING_10]","path":"/talks"}
+### POST /talks (bad level) {"title":"X","format":"WORKSHOP","level":"beginner","speakerId":<id>}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"unknown level","path":"/talks"}
+### POST /talks (blank title) {"title":"  ","format":"WORKSHOP","level":"BEGINNER","speakerId":<id>}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"title is required","path":"/talks"}
+### POST /talks (unknown speaker) {"title":"X","format":"WORKSHOP","level":"BEGINNER","speakerId":<id>}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"speaker 999999 does not exist","path":"/talks"}
+### GET /talks/{t}
+200 application/json;charset=UTF-8
+{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}
+### GET /talks/{t}/
+200 application/json;charset=UTF-8
+{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}
+### GET /talks?speakerId={a}
+200 application/json;charset=UTF-8
+[{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]},{"id":"<id>","title":"Lightning","format":"LIGHTNING_10","level":"ADVANCED","speakerId":"<id>","durationMinutes":10,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]},{"id":"<id>","title":"Workshop","format":"WORKSHOP","level":"BEGINNER","speakerId":"<id>","durationMinutes":120,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}]
+### GET /talks?sort=bad
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"sort must be 'rating'","path":"/talks"}
+### GET /speakers/{a}/talks
+200 application/json;charset=UTF-8
+[{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]},{"id":"<id>","title":"Lightning","format":"LIGHTNING_10","level":"ADVANCED","speakerId":"<id>","durationMinutes":10,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]},{"id":"<id>","title":"Workshop","format":"WORKSHOP","level":"BEGINNER","speakerId":"<id>","durationMinutes":120,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}]
+### GET /speakers/{a}/talks/
+200 application/json;charset=UTF-8
+[{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]},{"id":"<id>","title":"Lightning","format":"LIGHTNING_10","level":"ADVANCED","speakerId":"<id>","durationMinutes":10,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]},{"id":"<id>","title":"Workshop","format":"WORKSHOP","level":"BEGINNER","speakerId":"<id>","durationMinutes":120,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}]
+### PUT /talks/{t}/co-speakers/{b}
+200 application/json;charset=UTF-8
+{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":["<id>"]}
+### PUT /talks/{t}/co-speakers/{b} (again)
+200 application/json;charset=UTF-8
+{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":["<id>"]}
+### PUT /talks/{t}/co-speakers/{a} (main speaker)
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"the main speaker can't also be a co-speaker","path":"/talks/<n>/co-speakers/<n>"}
+### PUT /talks/{t}/co-speakers/999999
+404 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":404,"error":"Not Found","message":"speaker not found","path":"/talks/<n>/co-speakers/<n>"}
+### GET /speakers/{b}/talks
+200 application/json;charset=UTF-8
+[]
+### DELETE /talks/{t}/co-speakers/{b}
+200 application/json;charset=UTF-8
+{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}
+### DELETE /talks/{t}/co-speakers/{b} (again)
+404 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":404,"error":"Not Found","message":"not a co-speaker of this talk","path":"/talks/<n>/co-speakers/<n>"}
+### PUT /talks/{t}/ratings/1 {"score":4}
+200 application/json;charset=UTF-8
+{"talkId":"<id>","reviewerId":1,"score":4,"ratedAtDisplay":"<us-short>"}
+### PUT /talks/{t}/ratings/2 {"score":5}
+200 application/json;charset=UTF-8
+{"talkId":"<id>","reviewerId":2,"score":5,"ratedAtDisplay":"<us-short>"}
+### PUT /talks/{t}/ratings/2 (change) {"score":3}
+200 application/json;charset=UTF-8
+{"talkId":"<id>","reviewerId":2,"score":3,"ratedAtDisplay":"<us-short>"}
+### PUT /talks/{t}/ratings/3 (score 6) {"score":6}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"score must be 1-5","path":"/talks/<n>/ratings/<n>"}
+### PUT /talks/{t}/ratings/3 (score "3") {"score":"3"}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"score must be a whole number","path":"/talks/<n>/ratings/<n>"}
+### PUT /talks/{t}/ratings/3 (score 3.5) {"score":3.5}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"score must be a whole number","path":"/talks/<n>/ratings/<n>"}
+### PUT /talks/{t}/ratings/3 (no score) {}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"score must be a whole number","path":"/talks/<n>/ratings/<n>"}
+### PUT /talks/{t}/ratings/3 (trailing tokens) {"score":3} x
+200 application/json;charset=UTF-8
+{"talkId":"<id>","reviewerId":3,"score":3,"ratedAtDisplay":"<us-short>"}
+### PUT /talks/{t}/ratings/0 {"score":3}
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"reviewerId must be positive","path":"/talks/<n>/ratings/<n>"}
+### PUT /talks/999999/ratings/1 {"score":3}
+404 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":404,"error":"Not Found","message":"talk not found","path":"/talks/<n>/ratings/<n>"}
+### GET /talks/{t} (rated)
+200 application/json;charset=UTF-8
+{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":3.3,"ratingCount":3,"coSpeakerIds":[]}
+### GET /talks?sort=rating&speakerId={a}
+200 application/json;charset=UTF-8
+[{"id":"<id>","title":"Presentation","format":"PRESENTATION","level":"BEGINNER","speakerId":"<id>","durationMinutes":45,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":3.3,"ratingCount":3,"coSpeakerIds":[]},{"id":"<id>","title":"Lightning","format":"LIGHTNING_10","level":"ADVANCED","speakerId":"<id>","durationMinutes":10,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]},{"id":"<id>","title":"Workshop","format":"WORKSHOP","level":"BEGINNER","speakerId":"<id>","durationMinutes":120,"status":"SUBMITTED","submittedAt":"9999-99-99T99:99:99.999+99:99","submittedOn":"9999-99-99","averageRating":null,"ratingCount":0,"coSpeakerIds":[]}]
+### POST /talks (bad JSON) not json
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"<framework-message>","path":"/talks"}
+### POST /talks (text/plain) x
+415 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":415,"error":"Unsupported Media Type","message":"<framework-message>","path":"/talks"}
+### PUT /talks/{t}/ratings/1 (no body)
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"<framework-message>","path":"/talks/<n>/ratings/<n>"}
+### GET /talks/abc
+400 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":400,"error":"Bad Request","message":"<framework-message>","path":"/talks/abc"}
+### DELETE /talks
+405 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":405,"error":"Method Not Allowed","message":"<framework-message>","path":"/talks"}
+### GET /nope
+404 application/json;charset=UTF-8
+{"timestamp":"9999-99-99T99:99:99.999+99:99","status":404,"error":"Not Found","message":"<framework-message>","path":"/nope"}
+### GET /health
+200 application/json;charset=UTF-8
+{"status":"ok","version":"<version>"}
+### GET /actuator/info
+200 application/vnd.spring-boot.actuator.v3+json;charset=UTF-8
+{"versions":{"java":"<version>","springBoot":"<version>","springFramework":"<version>"}}
