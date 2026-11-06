@@ -175,9 +175,158 @@ PUT {{base_url}}/talks/{{one}}/ratings/3
 Content-Type: application/json
 HTTP 400
 
+# A score is a whole number from 1 to 5: 0 (just below) and 4.0 (not a whole number) are 400
+PUT {{base_url}}/talks/{{one}}/ratings/3
+{
+  "score": 0
+}
+HTTP 400
+
+PUT {{base_url}}/talks/{{one}}/ratings/3
+{
+  "score": 4.0
+}
+HTTP 400
+
 # None of the refused ratings counted
 GET {{base_url}}/talks/{{one}}
 HTTP 200
 [Asserts]
 jsonpath "$.ratingCount" == 1
 jsonpath "$.averageRating" == 5.0
+
+# Ranking on the average as shown (rounded): 4.25 shows as 4.3 and ties with 13/3 = 4.33, also
+# shown as 4.3, so the talk more reviewers rated comes first, although its raw average is lower.
+POST {{base_url}}/speakers
+{
+  "name": "Grace Lovelace 4c3e",
+  "email": "x-{{newUuid}}@example.test"
+}
+HTTP 201
+[Captures]
+rounding_speaker: jsonpath "$.id"
+
+POST {{base_url}}/talks
+{
+  "title": "Three reviewers, 4.33",
+  "format": "PRESENTATION",
+  "level": "BEGINNER",
+  "speakerId": {{rounding_speaker}}
+}
+HTTP 201
+[Captures]
+three_reviewers: jsonpath "$.id"
+
+POST {{base_url}}/talks
+{
+  "title": "Four reviewers, 4.25",
+  "format": "PRESENTATION",
+  "level": "BEGINNER",
+  "speakerId": {{rounding_speaker}}
+}
+HTTP 201
+[Captures]
+four_reviewers: jsonpath "$.id"
+
+PUT {{base_url}}/talks/{{three_reviewers}}/ratings/1
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{three_reviewers}}/ratings/2
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{three_reviewers}}/ratings/3
+{
+  "score": 5
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{four_reviewers}}/ratings/1
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{four_reviewers}}/ratings/2
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{four_reviewers}}/ratings/3
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{four_reviewers}}/ratings/4
+{
+  "score": 5
+}
+HTTP 200
+
+GET {{base_url}}/talks?speakerId={{rounding_speaker}}&sort=rating
+HTTP 200
+[Asserts]
+jsonpath "$" count == 2
+jsonpath "$[0].id" == {{four_reviewers}}
+jsonpath "$[0].averageRating" == 4.3
+jsonpath "$[1].id" == {{three_reviewers}}
+jsonpath "$[1].averageRating" == 4.3
+
+# Same average and same number of reviewers: talks still tied stay oldest first
+POST {{base_url}}/speakers
+{
+  "name": "Edsger Hopper 91d2",
+  "email": "x-{{newUuid}}@example.test"
+}
+HTTP 201
+[Captures]
+tie_speaker: jsonpath "$.id"
+
+POST {{base_url}}/talks
+{
+  "title": "Tied, older",
+  "format": "PRESENTATION",
+  "level": "BEGINNER",
+  "speakerId": {{tie_speaker}}
+}
+HTTP 201
+[Captures]
+tied_older: jsonpath "$.id"
+
+POST {{base_url}}/talks
+{
+  "title": "Tied, newer",
+  "format": "PRESENTATION",
+  "level": "BEGINNER",
+  "speakerId": {{tie_speaker}}
+}
+HTTP 201
+[Captures]
+tied_newer: jsonpath "$.id"
+
+# Rate the newer one first, so insertion order of the ratings can't explain the result
+PUT {{base_url}}/talks/{{tied_newer}}/ratings/1
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{tied_older}}/ratings/1
+{
+  "score": 4
+}
+HTTP 200
+
+GET {{base_url}}/talks?speakerId={{tie_speaker}}&sort=rating
+HTTP 200
+[Asserts]
+jsonpath "$" count == 2
+jsonpath "$[0].id" == {{tied_older}}
+jsonpath "$[1].id" == {{tied_newer}}

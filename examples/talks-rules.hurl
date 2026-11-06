@@ -39,6 +39,17 @@ jsonpath "$.submittedAt" matches /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+0
 jsonpath "$.submittedOn" matches /^\d{4}-\d{2}-\d{2}$/
 jsonpath "$.coSpeakerIds" count == 0
 
+# submittedOn is the UTC date of submittedAt (submittedAt is in UTC, +00:00)
+GET {{base_url}}/talks/{{first_id}}
+HTTP 200
+[Captures]
+submitted_date: jsonpath "$.submittedAt" regex "^(\\d{4}-\\d{2}-\\d{2})T"
+
+GET {{base_url}}/talks/{{first_id}}
+HTTP 200
+[Asserts]
+jsonpath "$.submittedOn" == "{{submitted_date}}"
+
 POST {{base_url}}/talks
 {
   "title": "A presentation",
@@ -149,6 +160,14 @@ POST {{base_url}}/talks
 {
   "title": "No level",
   "format": "WORKSHOP",
+  "speakerId": {{other_id}}
+}
+HTTP 400
+
+POST {{base_url}}/talks
+{
+  "title": "No format",
+  "level": "BEGINNER",
   "speakerId": {{other_id}}
 }
 HTTP 400

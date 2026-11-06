@@ -99,8 +99,16 @@ Check: `./mvnw package` green; `check-review.sh` clean. Commit: `docs: Spec-base
 
 ## Review response
 
-The `plan-reviewer` agent couldn't run: this plan was written by a background agent that can't spawn
-sub-agents. **A person must review this plan and D1–D4** before merging.
+The `plan-reviewer` agent couldn't run before execution (the background agent can't spawn
+sub-agents). It ran afterwards: [`spec_hurl_ci_plan_review.md`](spec_hurl_ci_plan_review.md).
+Decisions by Julian, 2026-11-06.
 
 | Finding | Response |
 |---|---|
+| D1 | Julian: no deploy gate needed, "as long as it can run locally". The `hurl` job stays ungated; `local-rollout.sh` runs the same suite on a laptop |
+| D2–D4 | Accepted as written (Julian, with B2) |
+| B1 known-failing speaker rules | Issue #33 (unassigned) |
+| B2 reviewed after execution | Julian: OK as is |
+| S1 coverage gaps | Fixed: acceptance D1 on withdraw, D10 precedence (404 before 400, 403 before 409), D3 ACCEPTED→WAITLISTED and WITHDRAWN→REJECTED/WAITLISTED, D8 `-1`/`1.5`, D14 rating and co-speakers after a decision; ratings score `0`/`4.0`, ranking on the rounded average, ties oldest first; talks `submittedOn` = `submittedAt`'s UTC date, missing `format`. All pass against the current service; the ranking assertions were mutation-checked (swapped order fails) |
+| S2 required check | Not needed, per D1 |
+| S3, S4, M1–M7 | Not done in this PR (not asked for) |

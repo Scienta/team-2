@@ -214,7 +214,7 @@ current status, not the timeline.
   a harness check's requests as a Hurl file to replay locally, with production's answers as comments.
   With request logging (`RequestLogFilter`), the harness's traffic shows in the container logs.
 - **Spec-based Hurl checks** [`examples/*-rules.hurl`](examples/) with the CI job `hurl` in
-  [`deploy.yml`](.github/workflows/deploy.yml): 134 requests over five features, each commented with
+  [`deploy.yml`](.github/workflows/deploy.yml): 179 requests over five features, each commented with
   the spec rule or decision it checks, in the harness's data shapes, and re-runnable on a database
   that keeps its data. The job pattern (build the deployed image, compose it with Postgres, gate on
   `/health`, run Hurl twice around a restart) works for any HTTP service with a Dockerfile.

@@ -303,12 +303,18 @@ PUT {{base_url}}/talks/{{talk_a}}/status
 }
 HTTP 409
 
-# D14: rating a withdrawn talk still works
+# D14: rating a withdrawn talk still works, counts, and leaves it withdrawn
 PUT {{base_url}}/talks/{{talk_a}}/ratings/3
 {
   "score": 3
 }
 HTTP 200
+
+GET {{base_url}}/talks/{{talk_a}}
+HTTP 200
+[Asserts]
+jsonpath "$.ratingCount" == 3
+jsonpath "$.status" == "WITHDRAWN"
 
 # D14: the withdrawn and rejected talks still count towards Ada's 3
 POST {{base_url}}/talks
@@ -335,3 +341,155 @@ HTTP 200
 jsonpath "$" count == 3
 jsonpath "$[*].status" contains "WITHDRAWN"
 jsonpath "$[*].status" contains "REJECTED"
+
+# D8: speakerId below 1 or not a whole number: -1 and 1.5 are 400 too
+POST {{base_url}}/talks/{{talk_r}}/withdraw
+{
+  "speakerId": -1
+}
+HTTP 400
+
+POST {{base_url}}/talks/{{talk_r}}/withdraw
+{
+  "speakerId": 1.5
+}
+HTTP 400
+
+# D1: an unknown talk is 404 on withdraw too
+POST {{base_url}}/talks/2147483647/withdraw
+{
+  "speakerId": {{ada}}
+}
+HTTP 404
+
+# D10: 404 before 400: an unknown talk with an invalid speakerId or status is still 404
+POST {{base_url}}/talks/2147483647/withdraw
+{
+  "speakerId": 0
+}
+HTTP 404
+
+PUT {{base_url}}/talks/2147483647/status
+{
+  "status": "SUBMITTED"
+}
+HTTP 404
+
+# D10: 403 before 409: a stranger withdrawing Ada's rejected talk is 403, not 409
+POST {{base_url}}/talks/{{talk_r}}/withdraw
+{
+  "speakerId": {{bob}}
+}
+HTTP 403
+
+# Setup for D3 and D14: Carol with two talks, each rated by two reviewers
+POST {{base_url}}/speakers
+{
+  "name": "Carol Liskov 3f0a",
+  "email": "x-{{newUuid}}@example.test"
+}
+HTTP 201
+[Captures]
+carol: jsonpath "$.id"
+
+POST {{base_url}}/talks
+{
+  "title": "Accepted, final",
+  "format": "PRESENTATION",
+  "level": "BEGINNER",
+  "speakerId": {{carol}}
+}
+HTTP 201
+[Captures]
+talk_final: jsonpath "$.id"
+
+POST {{base_url}}/talks
+{
+  "title": "Withdrawn, out for good",
+  "format": "PRESENTATION",
+  "level": "BEGINNER",
+  "speakerId": {{carol}}
+}
+HTTP 201
+[Captures]
+talk_gone: jsonpath "$.id"
+
+PUT {{base_url}}/talks/{{talk_final}}/ratings/1
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{talk_final}}/ratings/2
+{
+  "score": 5
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{talk_gone}}/ratings/1
+{
+  "score": 4
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{talk_gone}}/ratings/2
+{
+  "score": 5
+}
+HTTP 200
+
+# D3: ACCEPTED is final: waitlisting it is 409
+PUT {{base_url}}/talks/{{talk_final}}/status
+{
+  "status": "ACCEPTED"
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{talk_final}}/status
+{
+  "status": "WAITLISTED"
+}
+HTTP 409
+
+# D14: co-speakers can still change after a decision, and the decision stays
+PUT {{base_url}}/talks/{{talk_final}}/co-speakers/{{bob}}
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "ACCEPTED"
+jsonpath "$.coSpeakerIds" count == 1
+
+DELETE {{base_url}}/talks/{{talk_final}}/co-speakers/{{bob}}
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "ACCEPTED"
+jsonpath "$.coSpeakerIds" count == 0
+
+# D3: nothing on a WITHDRAWN talk: rejecting or waitlisting it is 409
+POST {{base_url}}/talks/{{talk_gone}}/withdraw
+{
+  "speakerId": {{carol}}
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{talk_gone}}/status
+{
+  "status": "REJECTED"
+}
+HTTP 409
+
+PUT {{base_url}}/talks/{{talk_gone}}/status
+{
+  "status": "WAITLISTED"
+}
+HTTP 409
+
+# None of the refused decisions changed either talk
+GET {{base_url}}/talks/{{talk_final}}
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "ACCEPTED"
+
+GET {{base_url}}/talks/{{talk_gone}}
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "WITHDRAWN"
