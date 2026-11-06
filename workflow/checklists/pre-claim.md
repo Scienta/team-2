@@ -13,6 +13,8 @@ and has evidence a person can check. Run it with `/pre-claim <slug>`.
    `{"status": "ok", "version": "<merged SHA>"}`.
 5. **Examples against our URL.** `examples/run.sh https://fagsem-h2026-team-2.scienta.cloud` is
    green, including `examples/<slug>.hurl`.
-6. **Harness.** `workflow/scripts/harness.sh feedback` shows no FAULTY check for the feature
-   (unclaimed features are checked too), or each one is explained.
+6. **Harness.** `workflow/scripts/harness.sh feedback` shows no FAULTY check for the claimed
+   features after the deploy. An unclaimed feature has **no checks** (seen for acceptance at tick
+   147), so the harness can't confirm our guesses before the claim: the PR's risk list
+   (`/list-risks`) says what to watch right after it.
 7. **Claim log.** A row for the feature is drafted in `REVIEW.md` §3 with this evidence.
