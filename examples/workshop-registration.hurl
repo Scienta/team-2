@@ -83,7 +83,7 @@ HTTP 201
 # Bad JSON is 400, even on a talk that doesn't exist (D8). A bad field on a talk that doesn't exist is 404 (D12)
 POST {{base_url}}/workshops/2147483647/registrations
 Content-Type: application/json
-```not json```
+`not json`
 HTTP 400
 
 POST {{base_url}}/workshops/2147483647/registrations
