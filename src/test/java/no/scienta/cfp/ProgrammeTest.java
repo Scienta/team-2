@@ -205,6 +205,44 @@ class ProgrammeTest {
         assertEquals(WireFormatTest.TALK_KEYS, WireFormatTest.keys(res.body()));
     }
 
+    @Test
+    void aBadBodyComesBeforeAnUnknownRoom() throws Exception {
+        String path = "/programme/R4/S1";
+        assertEquals(400, send("PUT", path, null, "application/json").statusCode(), "no body");
+        assertEquals(400, send("PUT", path, "not json", "application/json").statusCode(), "not json");
+        assertEquals(415, send("PUT", path, "{\"talkId\":1}", "text/plain").statusCode(), "text/plain");
+    }
+
+    @Test
+    void errorsComeInTheDecidedOrder() throws Exception {
+        long taken = acceptedTalk("PRESENTATION");
+        assertEquals(200, schedule("R1", "S1", taken).statusCode());
+        long submitted = newTalk(newSpeaker(), "WORKSHOP");
+
+        assertEquals(404, send("PUT", "/programme/R4/S1", "{\"talkId\":0}", "application/json").statusCode(),
+                "an unknown room before an invalid talkId");
+        assertEquals(400, send("PUT", "/programme/R1/S1", "{\"talkId\":0}", "application/json").statusCode(),
+                "an invalid talkId before the place is looked at");
+        assertError(400, "talk not found", schedule("R1", "S1", 2147483647L));
+        assertError(409, SchedulingRules.NOT_ACCEPTED, schedule("R1", "S1", submitted));
+        assertEquals(taken, talkIn("R1", "S1"));
+    }
+
+    @Test
+    void aCoSpeakerAddedAfterwardsChangesNothingOnTheProgramme() throws Exception {
+        long first = acceptedTalk("PRESENTATION");
+        long secondSpeaker = newSpeaker();
+        long second = acceptedTalk(secondSpeaker, "PRESENTATION");
+        assertEquals(200, schedule("R1", "S4", first).statusCode());
+        assertEquals(200, schedule("R2", "S4", second).statusCode());
+
+        String addCoSpeaker = "/talks/" + first + "/co-speakers/" + secondSpeaker;
+        assertEquals(200, send("PUT", addCoSpeaker, null, null).statusCode());
+
+        assertEquals(first, talkIn("R1", "S4"));
+        assertEquals(second, talkIn("R2", "S4"));
+    }
+
     // ---------------------------------------------------------------- DELETE
 
     @Test
