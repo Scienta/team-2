@@ -57,6 +57,13 @@ class UtilsTest {
         assertEquals(' ', s.charAt(s.length() - 3));
     }
 
+    // the committee spreadsheet's date format; pinned so a JDK upgrade (new CLDR data) can't change it unnoticed
+    @Test
+    void norwegianDateIsMediumNbNoInOsloTime() {
+        assertEquals("4. nov. 2026", Utils.norwegianDate(Date.from(Instant.parse("2026-11-04T12:00:00Z"))));
+        assertEquals("1. jan. 2027", Utils.norwegianDate(Date.from(Instant.parse("2026-12-31T23:30:00Z"))));
+    }
+
     private static String usShort(String instant) {
         return Utils.usShort(Date.from(Instant.parse(instant)));
     }

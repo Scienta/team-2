@@ -117,6 +117,15 @@ the checks go OK, and record the bleed (−29.33 points at tick 90).
   review rubric, with our two real misses as examples.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
+- **API snapshot** [`workflow/scripts/snapshot-api.sh`](workflow/scripts/snapshot-api.sh)
+  `<base-url> <out-file>`. It sends ~55 fixed requests and normalises the answers (ids, e-mails,
+  timestamp digits, framework messages), so two runs on the same build diff empty. Diff a snapshot
+  from before any upgrade or refactor against one from after it, and you see every user-visible
+  change. It was written for the Boot 4 upgrade; its first baseline is
+  `workflow/plans/todo/spring-boot-4.baseline.txt`.
+- **Wire-format net** [`WireFormatTest`](src/test/java/no/scienta/cfp/WireFormatTest.java): asserts
+  on raw response strings, so it survives a JSON library swap. It was checked by breaking each
+  guarded behaviour with a property (8 of 8 caught).
 
 ## 6. One thing we'd do differently
 
