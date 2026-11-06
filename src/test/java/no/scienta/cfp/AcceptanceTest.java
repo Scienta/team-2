@@ -152,7 +152,100 @@ class AcceptanceTest {
         }
     }
 
+    // ---------------------------------------------------------------- withdrawal
+
+    @Test
+    void speakerWithdraws() throws Exception {
+        long speaker = newSpeaker();
+        long submitted = newTalk(speaker);
+        long waitlisted = newTalk(speaker);
+        long accepted = newTalk(speaker);
+        assertEquals(200, decide(waitlisted, "WAITLISTED").statusCode());
+        rateAll(accepted, 4, 5);
+        assertEquals(200, decide(accepted, "ACCEPTED").statusCode());
+        for (long talk : new long[] {submitted, waitlisted, accepted}) {
+            HttpResponse<String> res = withdraw(talk, speaker);
+            assertStatus(200, res, "WITHDRAWN");
+            assertEquals(talk, JSON.readTree(res.body()).get("id").asLong());
+        }
+    }
+
+    @Test
+    void withdrawnIsOutForGood() throws Exception {
+        long speaker = newSpeaker();
+        long talk = newTalk(speaker);
+        rateAll(talk, 4, 5);
+        assertEquals(200, withdraw(talk, speaker).statusCode());
+        for (String status : Arrays.asList("ACCEPTED", "REJECTED", "WAITLISTED")) {
+            assertEquals(409, decide(talk, status).statusCode(), status);
+        }
+        assertEquals(409, withdraw(talk, speaker).statusCode());
+        assertEquals("WITHDRAWN", statusOf(talk));
+    }
+
+    @Test
+    void rejectedCantBeWithdrawn() throws Exception {
+        long speaker = newSpeaker();
+        long talk = newTalk(speaker);
+        assertEquals(200, decide(talk, "REJECTED").statusCode());
+        assertEquals(409, withdraw(talk, speaker).statusCode());
+        assertEquals("REJECTED", statusOf(talk));
+    }
+
+    @Test
+    void onlyTheMainSpeakerCanWithdraw() throws Exception {
+        long speaker = newSpeaker();
+        long talk = newTalk(speaker);
+        long other = newSpeaker();
+        long coSpeaker = newSpeaker();
+        assertEquals(200, send("PUT", "/talks/" + talk + "/co-speakers/" + coSpeaker, null, null).statusCode());
+        assertEquals(403, withdraw(talk, other).statusCode());
+        assertEquals(403, withdraw(talk, coSpeaker).statusCode());
+        assertEquals(403, withdraw(talk, 999999).statusCode());
+        assertEquals("SUBMITTED", statusOf(talk));
+    }
+
+    @Test
+    void invalidWithdrawBody() throws Exception {
+        long talk = newTalk(newSpeaker());
+        String path = "/talks/" + talk + "/withdraw";
+        for (String body : Arrays.asList("{}", "{\"speakerId\":null}", "{\"speakerId\":\"1\"}",
+                "{\"speakerId\":1.5}", "{\"speakerId\":0}", "{\"speakerId\":-1}", "not json")) {
+            assertEquals(400, send("POST", path, body, "application/json").statusCode(), body);
+        }
+        assertEquals(400, send("POST", path, null, "application/json").statusCode(), "no body");
+        assertEquals(415, send("POST", path, "{\"speakerId\":1}", "text/plain").statusCode(), "text/plain");
+        assertEquals("SUBMITTED", statusOf(talk));
+    }
+
+    @Test
+    void withdrawPrecedence() throws Exception {
+        assertEquals(404, send("POST", "/talks/" + MISSING_TALK + "/withdraw", "{}", "application/json").statusCode());
+        long talk = newTalk(newSpeaker());
+        assertEquals(200, decide(talk, "REJECTED").statusCode());
+        assertEquals(403, withdraw(talk, newSpeaker()).statusCode());
+    }
+
+    @Test
+    void afterwardsNothingElseChanges() throws Exception {
+        long speaker = newSpeaker();
+        long withdrawn = newTalk(speaker);
+        newTalk(speaker);
+        newTalk(speaker);
+        assertEquals(200, withdraw(withdrawn, speaker).statusCode());
+        assertEquals(200, rate(withdrawn, 1, 4).statusCode());
+        assertEquals(1, getJson("/talks/" + withdrawn).get("ratingCount").asInt());
+        HttpResponse<String> fourth = send("POST", "/talks",
+                "{\"title\":\"Talk\",\"format\":\"PRESENTATION\",\"level\":\"BEGINNER\",\"speakerId\":" + speaker + "}",
+                "application/json");
+        assertEquals(409, fourth.statusCode(), fourth.body());
+    }
+
     // ---------------------------------------------------------------- helpers
+
+    private HttpResponse<String> withdraw(long talk, long speaker) throws Exception {
+        return send("POST", "/talks/" + talk + "/withdraw", "{\"speakerId\":" + speaker + "}", "application/json");
+    }
 
     private void assertStatus(int code, HttpResponse<String> res, String status) throws Exception {
         assertEquals(code, res.statusCode(), res.body());

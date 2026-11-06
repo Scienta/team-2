@@ -264,6 +264,27 @@ public class ConferenceService {
         return getTalk(talkId);
     }
 
+    @Transactional
+    public TalkDto withdraw(long talkId, Map<String, Object> body) {
+        if (!talkDao.lock(talkId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "talk not found");
+        }
+        Object raw = body.get("speakerId");
+        if (!(raw instanceof Integer || raw instanceof Long) || ((Number) raw).longValue() < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "speakerId must be a positive whole number");
+        }
+        long speakerId = ((Number) raw).longValue();
+        TalkDto talk = getTalk(talkId);
+        if (speakerId != talk.speakerId.longValue()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only the talk's speaker can withdraw it");
+        }
+        if (!allowed(talk.status, "WITHDRAWN")) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "a " + talk.status + " talk can't be withdrawn");
+        }
+        talkDao.updateStatus(talkId, "WITHDRAWN");
+        return getTalk(talkId);
+    }
+
     /**
      * The acceptance state machine (workflow/specs/acceptance.md). Anything not listed, including a repeat, is refused.
      */
