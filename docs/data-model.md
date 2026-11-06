@@ -61,7 +61,7 @@ a row lock on the talk.
 | `talk_id` | `INTEGER NOT NULL` | The workshop. No foreign key to `talk` |
 | `name` | `TEXT NOT NULL` | As typed |
 | `email` | `TEXT NOT NULL` | As typed |
-| `email_key` | `TEXT NOT NULL` | Trimmed and lower-cased: what makes two emails the same person |
+| `email_key` | `TEXT NOT NULL` | Trimmed and lower-cased: what makes two emails the same person. At most 254 characters, enforced in `WorkshopService`, since a much longer value can't fit in the unique index |
 
 Unique on `(talk_id, email_key)`. The limit of 20 per workshop is enforced in `WorkshopService`, under
 a row lock on the talk.

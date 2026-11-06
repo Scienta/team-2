@@ -83,6 +83,8 @@ class WorkshopRegistrationTest {
         assertEquals("Bob", list.get(1).get("name").asText());
         assertEquals(workshop, list.get(1).get("workshopId").asLong());
         assertEquals("bob@example.com", list.get(1).get("email").asText());
+        assertEquals(4, list.get(1).size(), list.toString());
+        assertTrue(list.get(1).get("id").isIntegralNumber() && list.get(1).get("workshopId").isIntegralNumber(), list.toString());
     }
 
     @Test
@@ -181,16 +183,56 @@ class WorkshopRegistrationTest {
         assertEquals("\tada@example.com\n", stored.get("email").asText());
     }
 
-    // D13: the request gives no limit
+    // D13. Random text doesn't compress, so this is what used to overflow the unique index on email_key and give a 500
     @Test
-    void longNameAndEmailAreAccepted() throws Exception {
+    void anEmailOver254CharactersIs400() throws Exception {
         long workshop = acceptedWorkshop();
-        String name = "N".repeat(10_000);
-        String email = "e".repeat(10_000) + "@example.com";
-        HttpResponse<String> res = register(workshop, name, email);
+        String domain = "@example.com";
+        StringBuilder random = new StringBuilder();
+        while (random.length() < 10_000) {
+            random.append(UUID.randomUUID());
+        }
+        assertEquals(400, register(workshop, "Ada", random + domain).statusCode(), "far too long");
+
+        String longest = random.substring(0, 254 - domain.length()) + domain;
+        assertEquals(400, register(workshop, "Ada", "x" + longest).statusCode(), "255 characters");
+        assertEquals(0, list(workshop).size());
+
+        assertEquals(201, register(workshop, "Ada", longest).statusCode(), "254 characters");
+        assertEquals(201, register(workshop, "Bob", "  bob@example.com" + " ".repeat(300)).statusCode(), "whitespace at the edges doesn't count");
+    }
+
+    @Test
+    void otherBadFieldValuesAre400() throws Exception {
+        long workshop = acceptedWorkshop();
+        String email = "\"email\":\"ada@example.com\"";
+        for (String name : new String[] {"true", "[\"Ada\"]", "{\"a\":1}", "\"A\\u0001da\"", "\"A\\u007Fda\""}) {
+            String body = "{\"name\":" + name + "," + email + "}";
+            assertEquals(400, post(workshop, body).statusCode(), body);
+        }
+        assertEquals(400, register(workshop, "Ada", "a b@c.d").statusCode(), "a no-break space inside the email");
+        assertEquals(0, list(workshop).size());
+    }
+
+    @Test
+    void ordinaryEmailShapesAreAccepted() throws Exception {
+        long workshop = acceptedWorkshop();
+        for (String email : new String[] {"a@c.d", "ada.lovelace+cfp@mail.example.co.uk", "ÅSE@eksempel.no"}) {
+            assertEquals(201, register(workshop, "Ada", email).statusCode(), email);
+        }
+    }
+
+    // D13: the request gives no limit, and the name has no index to overflow
+    @Test
+    void aLongNameIsAccepted() throws Exception {
+        long workshop = acceptedWorkshop();
+        StringBuilder name = new StringBuilder();
+        while (name.length() < 10_000) {
+            name.append(UUID.randomUUID());
+        }
+        HttpResponse<String> res = register(workshop, name.toString(), "ada@example.com");
         assertEquals(201, res.statusCode(), res.body());
-        assertEquals(name, list(workshop).get(0).get("name").asText());
-        assertEquals(email, list(workshop).get(0).get("email").asText());
+        assertEquals(name.toString(), list(workshop).get(0).get("name").asText());
     }
 
     // D14: a speaker on the workshop can attend it, and an attendee doesn't have to be a speaker
@@ -249,6 +291,16 @@ class WorkshopRegistrationTest {
         assertEquals(404, post(MISSING_TALK, badField).statusCode(), "missing talk before the fields");
         long submitted = newTalk(newSpeaker(), "WORKSHOP");
         assertEquals(400, post(submitted, badField).statusCode(), "the fields before the status");
+        assertEquals(400, register(submitted, "Ada", "not-an-email").statusCode(), "the email before the status");
+
+        long presentation = newTalk(newSpeaker(), "PRESENTATION");
+        assertEquals(404, post(presentation, badField).statusCode(), "not a workshop before the fields");
+
+        long full = acceptedWorkshop();
+        for (int i = 0; i < 20; i++) {
+            assertEquals(201, register(full, "Attendee " + i, "a" + i + "@example.com").statusCode());
+        }
+        assertEquals(400, register(full, "", "a0@example.com").statusCode(), "the fields before full and duplicate");
     }
 
     @Test
@@ -265,7 +317,7 @@ class WorkshopRegistrationTest {
     void sameEmailTwiceIs409() throws Exception {
         long workshop = acceptedWorkshop();
         assertEquals(201, register(workshop, "Ada", "ada@example.com").statusCode());
-        for (String email : new String[] {"ada@example.com", "ADA@Example.com", " ada@example.com ", " ada@example.com"}) {
+        for (String email : new String[] {"ada@example.com", "ADA@Example.com", " ada@example.com ", "\tada@example.com", "ada@example.com\n"," ada@example.com"}) {
             assertEquals(409, register(workshop, "Ada again", email).statusCode(), email);
         }
         JsonNode list = list(workshop);

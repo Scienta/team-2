@@ -17,6 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class WorkshopService {
 
     private static final int MAX_ATTENDEES = 20;
+    // RFC 5321. It also keeps email_key small enough for its unique index: a much longer key is a database error.
+    private static final int MAX_EMAIL_LENGTH = 254;
 
     private static final Pattern EDGE_WHITESPACE = Pattern.compile("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$");
     private static final Pattern UNSTORABLE = Pattern.compile("[\\p{Cntrl}\\p{Cs}]");
@@ -36,7 +38,7 @@ public class WorkshopService {
         String name = requireText(body, "name");
         String email = requireText(body, "email");
         String trimmedEmail = trim(email);
-        if (!EMAIL.matcher(trimmedEmail).matches()) {
+        if (trimmedEmail.length() > MAX_EMAIL_LENGTH || !EMAIL.matcher(trimmedEmail).matches()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid email");
         }
         talkDao.lock(workshopId);

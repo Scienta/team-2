@@ -166,7 +166,7 @@ be a registered speaker. There's no way to remove a registration, so a seat stay
 Returns `id`, `workshopId`, `name` and `email`, with `name` and `email` as typed. Checks, in this
 order: the talk exists and is a `WORKSHOP` (404); `name` and `email` are strings with text in them and
 no control characters (400); `email` has one `@`, no whitespace inside, and a dot with text on both
-sides after the `@` (400); the talk is `ACCEPTED` (409); the workshop has fewer than 20 registrations
+sides after the `@`, and at most 254 characters after trimming (400); the talk is `ACCEPTED` (409); the workshop has fewer than 20 registrations
 (409); the email isn't registered for this workshop (409), ignoring letter case and surrounding
 whitespace.
 
