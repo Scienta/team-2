@@ -41,6 +41,16 @@ and the claim):
    then check each listed risk on the harness.
 7. **Evidence, then a person claims**, then a row in the claim log below.
 
+8. **Unattended variant (spec pipeline, issue #35, first supervised run pending).**
+   `/loop 10m /spec-watch` runs locally (no agents in CI). When the harness releases a spec with no
+   `spec:<slug>` issue, it opens an issue assigned to Daniel, and
+   [`/implement-issue`](.claude/skills/implement-issue/SKILL.md) runs steps 1–6 with the
+   [`issue-implementer`](.claude/agents/issue-implementer.md) agent and the plan reviewer, ending in a
+   **draft** PR. The human approval in step 4 moves to the PR: decisions are "agent default, pending
+   human" until a person approves them and marks it ready. Deny rules in
+   [`.claude/settings.json`](.claude/settings.json) block merging, `gh pr ready` and pushes to `main`.
+   Plan and its review: `workflow/plans/todo/spec_pipeline_plan.md`.
+
 The whole flow on one screen: [`workflow/README.md`](workflow/README.md). Team rules for agents:
 [`.claude/rules/`](.claude/rules/) (`AGENTS.md` sends every agent there). Skills:
 [`.claude/skills/`](.claude/skills/). Review agents: [`.claude/agents/`](.claude/agents/). ADRs:
@@ -208,6 +218,13 @@ current status, not the timeline.
   checker or client sees behaviour the spec didn't pin down.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
+- **Spec pipeline** [`/spec-watch`](.claude/skills/spec-watch/SKILL.md) →
+  [`/implement-issue`](.claude/skills/implement-issue/SKILL.md) →
+  [`issue-implementer`](.claude/agents/issue-implementer.md), with
+  [`new-specs.sh`](workflow/scripts/new-specs.sh) and [`pipeline-queue.sh`](workflow/scripts/pipeline-queue.sh):
+  watch a source of work, open an issue, implement it in its own worktree, and end in a draft PR
+  for a person. Its state lives in issue labels, so a restarted session picks it up again. Works for
+  any repo where work arrives as specs or tickets.
 - **API snapshot** [`workflow/scripts/snapshot-api.sh`](workflow/scripts/snapshot-api.sh)
   `<base-url> <out-file>`. It sends ~55 fixed requests and normalises the answers (ids, e-mails,
   timestamp digits, framework messages), so two runs on the same build diff empty. Diff a snapshot
