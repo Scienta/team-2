@@ -32,3 +32,21 @@ Match the existing code:
 - Docker must be running: the tests start Postgres with Testcontainers
 - Behaviour visible over HTTP also gets a Hurl example in `examples/`
 - Line coverage may not drop: see `workflow/coverage/README.md`
+
+## Prod-like Local Run
+
+Before a PR that changes HTTP behaviour, run the image we deploy, not just `java -jar`:
+
+- `workflow/scripts/local-rollout.sh` builds the root `Dockerfile` for `linux/amd64` with the commit's
+  SHA, starts it with `docker compose --profile app` against a Postgres whose data survives restarts
+  (volume `pgdata`, as in prod), waits for `/health` to report the SHA and runs `examples/run.sh`.
+  `docker compose --profile app down -v` empties the database. `APP_PORT`/`PG_PORT` move the ports.
+- `workflow/scripts/transcript-to-hurl.sh <feature>/<check>` turns a harness check's latest transcript
+  into Hurl that replays its requests (prod IDs, no headers, no asserts: fix those before saving it to
+  `examples/`).
+- Every request is logged as `METHOD /path -> STATUS (N ms)` (`RequestLogFilter`), so the harness's
+  traffic shows in `.github/fagdag/logs.sh`.
+
+Not reproduced locally: the managed Postgres's quirks (advisory locks, a pooler leaking session `SET`),
+the TLS proxy, the platform's own `503` beyond 80 concurrent requests, scale-to-zero cold starts, and the
+harness's hidden checks.
