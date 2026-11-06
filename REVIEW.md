@@ -82,6 +82,13 @@ the talks spec allows three. The plan review caught it before execution; the tes
 on a 409 before testing any ranking. The review of the reorg plan also caught that a per-line
 HTML-comment check would have reported an empty claim-log section as filled.
 
+**A bug the ratings verification caught before a Java upgrade did** (`workflow/plans/done/ratings_plan.md`,
+Phase 1): a unit test pinning `ratedAtDisplay` failed on a laptop with JDK 21. From JDK 20 the
+locale's US short format puts a narrow no-break space (U+202F) before AM/PM; the ratings spec wants
+"exactly one ordinary space". Production ran JDK 11, so the harness never saw it, but the Spring
+Boot 4 upgrade to Java 25 later would have broken a claimed feature. Fixed with an explicit
+`M/d/yy, h:mm a` pattern before the upgrade; the base checks stayed OK through it.
+
 **Bugs the acceptance plan review caught** (`workflow/plans/done/acceptance_plan_review.md`):
 B1, the withdrawal check compared the body's `speakerId` (an `Integer` from Jackson) with
 `TalkDto.speakerId` (a boxed `Long`) using `!=`, which compares references: every withdrawal would
@@ -89,6 +96,11 @@ have got 403, including the talk's own speaker. S1, a concurrency test accepted 
 WAITLISTED" as the final state, which would have passed a stale-read bug. Both fixed in the plan
 before any code was written. We also checked that the concurrency tests have teeth: with the row
 lock removed, all four fail (up to 6 conflicting decisions answered 200).
+
+After the acceptance deploy, the `spec-checker` agent found 6 decisions only partly covered (e.g.
+accepting from WAITLISTED with one reviewer, 400 before 409 on a withdrawn talk). The tests were
+added on branch `11-acceptance-gaps`; all passed against the deployed code. That branch was never
+merged: we held it back to save a deploy.
 
 **What the workshop registration plan review caught**
 (`workflow/plans/done/workshop_registration_plan_review.md`): every planned test would have passed
@@ -167,8 +179,17 @@ Merging `main` (coverage ratchet, PR #8) into the Boot 4 branch turned up two mo
 | Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
 | Spring Boot 4 | claimed | 163 | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. After deploy (`e0a9680`, live ~13:58): base checks OK for ~10 ticks before the claim, `/pre-claim` all items pass, logs clean, 7/7 Hurl files green against our URL. After the claim: spring-boot-4 check-1 and check-2 OK at tick 166, all other claimed checks OK, no bleed |
 | Acceptance | claimed | 148 | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16; `/pre-claim` all 7 items pass (deploy `50ea65c` live, 6/6 Hurl files green against our URL, 18/18 checks of claimed features OK at tick 147). After the claim: acceptance check-1 to check-5 all OK at tick 150, no bleed. No check failed on D5, D6 or D7 (the harness doesn't say which rules its checks exercise) |
-| Workshop registration | not claimed yet | TODO(human): tick | `WorkshopRegistrationTest` (24 tests: a rush of 60 gives exactly 20 registrations, a registration waiting for the lock sees a withdrawal; the lock tests go red with the lock removed), `examples/workshop-registration.hurl` against a local service, `workflow/plans/done/workshop_registration_plan.md`. Deployed as `42ac64e` (`/health`), `examples/run.sh` against our URL 8 of 8 files with Hurl 8.1.0. The harness shows no checks for it until claimed. TODO(human): harness status after the claim |
-| Scheduling | not claimed yet | TODO(human): tick | `ProgrammeTest` (36 tests: D1–D20, 4 concurrency tests × 10 rounds; without the slot lock or the talk lock at least one fails), `SchedulingRulesTest` and `VenueTest` (48 tests), new code 100 % line and branch covered, `examples/scheduling.hurl` (never writes) and `examples/local/scheduling-happy-path.hurl` green twice against a local service, `workflow/plans/done/scheduling_plan.md`. Not yet deployed or run against our URL. TODO(human): harness status after the deploy |
+| Workshop registration | claimed | 205 | `WorkshopRegistrationTest` (24 tests: a rush of 60 gives exactly 20 registrations, a registration waiting for the lock sees a withdrawal; the lock tests go red with the lock removed), `examples/workshop-registration.hurl` against a local service, `workflow/plans/done/workshop_registration_plan.md`. Deployed as `42ac64e` (`/health`), `examples/run.sh` against our URL 8 of 8 files with Hurl 8.1.0. The harness shows no checks for it until claimed. After the claim: check-1, check-3 and check-4 OK; check-2 FAULTY on ticks 206–218 (decision D2, see §4). Fixes #38 (deployed 15:03, the harness accepted the new `POST` answer at tick 217) and #42 (deployed 15:12); the harness stopped ticking at 218 (15:06) before it could check #42 |
+| Scheduling | not claimed (merged, #32) | – | `ProgrammeTest` (36 tests: D1–D20, 4 concurrency tests × 10 rounds; without the slot lock or the talk lock at least one fails), `SchedulingRulesTest` and `VenueTest` (48 tests), new code 100 % line and branch covered, `examples/scheduling.hurl` (never writes) and `examples/local/scheduling-happy-path.hurl` green twice against a local service, `workflow/plans/done/scheduling_plan.md`. Not yet deployed or run against our URL. Merged at 15:06 as `9fc6908`, right when the harness stopped ticking (tick 218), so it was never claimed |
+
+| Ratings change request | not claimed | – | Released at tick 167; issue #39 open at the end |
+| Submission cap change request | not claimed | – | Issue #40 open at the end |
+| Programme export | not claimed | – | Plan in `workflow/plans/todo/programme_export_plan.md`, issue #25 open at the end |
+
+**Final harness state (tick 218, when the harness stopped ticking at 15:06):** total 1279.95,
+earned 1377.98, bled −98.03. Seven features claimed; every check OK except workshop
+registration check-2. Ratings check-2 and check-4 and co-speakers check-3 had shown no result for
+the last ~50 ticks (not FAULTY, no bleed); we didn't find out why.
 
 ## 4. What the harness caught that we didn't
 
@@ -202,7 +223,22 @@ failing request: `POST /workshops/{id}/registrations` for an accepted `LIGHTNING
 answered 404 "workshop not found" (decision D2: "it isn't a workshop, so that resource doesn't
 exist"). The harness wants something else. Our tests pinned our own guess, and the risk list didn't
 flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4). After that deploy (tick 217) check-2 got past the `POST` and failed on the next request, `GET` on the same talk (404, flagged as a risk in PR #38); second fix: 200 `[]`.
-TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
+The check failed on 13 ticks (206–218), about 1 point each. We never saw it go OK: the
+harness stopped ticking at tick 218, before the second fix was deployed. Lesson: our own guess
+(404, "that resource doesn't exist") was reasonable, but the harness treats a talk that isn't a
+workshop like one that isn't accepted. `/list-risks` flagged the `GET` in PR #38 but not the `POST`
+in the first place, because D2 was "approved" and not marked as an open risk.
+
+**The rollout bleed's cause, found late (fix #31).** We saw deploys cost points at tick 121 but
+only investigated at tick ~200. The cause: the new container answered every request, but slowly. The
+harness's first burst after a rollout reached a cold JVM, `POST /speakers` took up to 5.3 s (50–70 ms
+warm), and the harness gave up (`status: null` in the transcript). It was not the shutdown and not
+the platform. Fix: a `StartupWarmup` that sends ~180 read-only or rejected requests to itself after
+start, and `-XX:TieredStopAtLevel=1` so the JIT doesn't take CPU from requests on our small CPU
+share. Locally at 0.5 CPU, the slowest request in the first burst went from 5.3 s to 0.8 s. On the
+harness, `talks/check-5` was FAULTY at ticks 121, 144, 152, 154 (deploys); after #31 went live, the
+deploys of #31 itself (tick 204) and #38 (tick 216) cost nothing. One more FAULTY tick (210)
+lines up with the platform restarting the container on its own at 14:56:48.
 
 ## 5. Reusable artifacts
 
@@ -231,6 +267,10 @@ TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
   behaviour change ships with a list of what could break on the harness, ordered by likelihood, each
   with the fallback, and is checked off after the deploy. Works for any change where an external
   checker or client sees behaviour the spec didn't pin down.
+- **JVM warm-up after start** [`StartupWarmup`](src/main/java/no/scienta/cfp/StartupWarmup.java)
+  and `-XX:TieredStopAtLevel=1` in the [`Dockerfile`](Dockerfile): for any JVM service on a small
+  CPU share that a checker or load balancer hits right after a rollout. Measure the first burst
+  after start before reaching for it.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
 - **API snapshot** [`workflow/scripts/snapshot-api.sh`](workflow/scripts/snapshot-api.sh)
@@ -257,7 +297,14 @@ TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
 
 ## 6. One thing we'd do differently
 
-Candidate: don't merge docs-only PRs on their own, since every push to `main` redeploys and a
-rollout can bleed points (§4, tick 121). Batch them with the next feature merge.
+**Treat the first unexplained bleed as a bug, right away.** At tick 121 we saw 15 checks go FAULTY
+during a docs-only deploy and wrote it down (§4), but we only answered with "merge less". The cause
+(a cold JVM after start) took one agent about 20 minutes to find from the harness timeline and the
+container logs, and the fix cost nothing on the next deploys. Before that, rollouts cost 4–13 points each,
+over a third of our −98 bleed. The same habit would have helped with status codes:
+the transcript of a FAULTY check says exactly which request failed (co-speakers, workshop D2), so
+read it at the first FAULTY tick instead of guessing.
 
-TODO(human): pick the one thing we'd do differently (this candidate or another).
+Other candidates we discussed: batch docs-only PRs with the next feature merge (each deploy cost
+points until #31); freeze the coverage floor from the start, since a ratchet with many parallel PRs
+made every merge conflict on one line of `pom.xml` (#43).
