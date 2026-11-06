@@ -1,2 +1,0 @@
-# basic setup
-pytest
