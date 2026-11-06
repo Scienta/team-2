@@ -1,7 +1,7 @@
 
 # Project-Specific Development Guidelines
 
-This file contains **overrides and additions** to the team workflow described in `AGENTS.md`.
+This file contains **overrides and additions** to the team workflow described in `AGENTS.md` (moving to `.claude/rules/team-workflow.md`).
 
 ## Stack
 

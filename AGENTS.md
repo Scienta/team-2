@@ -89,7 +89,7 @@ where it conflicts with the facts above, the facts win.
 ## Reading List
 
 - Read README.md for project overview
-- Read skills/PROJECT.md for project-specific development guidelines
+- Read .claude/rules/project.md for project-specific development guidelines
 - Read skills/making_a_plan.md for planning methodology
 - Read skills/phase_execution.md for execution patterns
 - Read any other markdown files in `skills/*.md`
@@ -107,7 +107,7 @@ This is a Java 11 / Spring Boot 2.7 project built with the Maven wrapper (see "C
 **Before starting work:** check that Docker is running (`docker info`). **If not, inform the human
 and stop execution**, since the tests can't run without it.
 
-**If anything here differs from reality**, update `skills/PROJECT.md` with the project-specific
+**If anything here differs from reality**, update `.claude/rules/project.md` with the project-specific
 details.
 
 ## Development Workflow for Agents
@@ -191,7 +191,7 @@ Create tests for code that you generate.
 
 For regression tests, shell scripts are often as welcome as framework-based tests.
 
-Check `skills/PROJECT.md` for project-specific testing requirements.
+Check `.claude/rules/project.md` for project-specific testing requirements.
 
 ## Running Bash Commands
 
@@ -206,5 +206,5 @@ Check `skills/PROJECT.md` for project-specific testing requirements.
 
 ## Code Conventions
 
-Follow project-specific conventions as defined in `skills/PROJECT.md`, and match the style of the
+Follow project-specific conventions as defined in `.claude/rules/project.md`, and match the style of the
 surrounding code.

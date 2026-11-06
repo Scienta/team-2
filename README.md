@@ -219,16 +219,16 @@ master instructions.
 .
 ├── AGENTS.md                   # Organiser facts + team agent instructions
 ├── skills/
-│   ├── PROJECT.md             # Project-specific overrides (edit this!)
+│   ├── (PROJECT.md moved to .claude/rules/project.md)
 │   ├── making_a_plan.md       # Planning methodology
 │   ├── making_a_master_plan.md # Planning for larger tasks
 │   └── phase_execution.md     # Execution patterns
-├── adrs/                       # Architecture decision records
+├── workflow/adrs/              # Architecture decision records
 ├── todo/                       # Plans in progress
 └── done/                       # Completed plans
 ```
 
-**Edit `skills/PROJECT.md` when the project:**
+**Edit `.claude/rules/project.md` when the project:**
 - Uses a different directory structure or test setup
 - Has different environment requirements
 - Has specific code conventions (naming, formatting, etc.)
