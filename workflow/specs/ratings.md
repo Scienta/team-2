@@ -4,6 +4,8 @@ Version: 1
 Kind: base feature (claimed from tick 0)
 V: 2
 
+Changed by the ratings change request: `averageRating` is now trimmed at 5+ ratings and rounded to 2 decimals half-even, see [ratings-cr.md](ratings-cr.md). The text below is the base spec as released.
+
 ## Context
 
 As a reviewer, I want to give each talk ([Talk submissions](../talks/spec.md)) a score from 1 to 5 and change my mind later, so that the programme committee can rank talks by how well they were received.

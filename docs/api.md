@@ -78,7 +78,7 @@ Undocumented admin lookup: speakers whose name contains `q` (case-insensitive), 
 | `durationMinutes` | Derived from `format`; clients can't set it |
 | `status` | `SUBMITTED` when new; then `ACCEPTED`, `REJECTED`, `WAITLISTED` or `WITHDRAWN` (see Acceptance) |
 | `submittedAt` / `submittedOn` | Submission instant (UTC) and its UTC date |
-| `averageRating` | Mean score to 1 decimal, rounded half up (4.25 → 4.3); `null` with no ratings |
+| `averageRating` | Mean score, rounded to 2 decimals half-even (3.125 → 3.12, 3.375 → 3.38); from 5 ratings on without one highest and one lowest score (`workflow/specs/ratings-cr.md`); `null` with no ratings |
 | `ratingCount` | Number of reviewers who rated it |
 | `coSpeakerIds` | Co-speakers' speaker ids in the order they were added; `[]` when none |
 
@@ -99,7 +99,7 @@ The talk object. 404 `talk not found`.
 ### `GET /talks?sort=rating&speakerId=…` → 200
 
 All talks ordered by `id`, optionally filtered by `speakerId` (an unknown speaker gives `[]`, not
-404). With `sort=rating`: rated talks first by `averageRating` descending, then `ratingCount`
+404). With `sort=rating`: rated talks first by `averageRating` (the rounded, trimmed average) descending, then `ratingCount`
 descending, then `id` ascending; unrated talks last, by `id`. Any other `sort` value is 400.
 
 ## Co-speakers

@@ -21,7 +21,7 @@ here. Ratings entries were checked on 2026-11-06 (`workflow/plans/done/ratings_p
 | R3 | Durations are defined twice, in the `DURATIONS` map and in a `switch` with a 45-minute default | `ConferenceService.submitTalk` |
 | R4 | Bio limit: 500 on create, 1000 on update | `SpeakerForm`, `ConferenceService.updateSpeaker` |
 | R5 | E-mail format is checked on update but not on create | `SpeakerForm`, `Utils.isValidEmail` |
-| R6 | Rounding: a talk's average rounds half up (`calculateAverage`), the stats average rounds down (`Utils.roundRating`) | `ConferenceService` |
+| R6 | Rounding: a talk's average rounds to 2 decimals half-even (`Utils.ratingAverage`, ratings change request), the stats average rounds down to 1 decimal (`Utils.roundRating`) | `ConferenceService` |
 | R7 | Unknown speaker: `GET /talks?speakerId=` gives `[]`, `GET /speakers/{id}/talks` gives 404 | `ConferenceService.listTalks` |
 | R8 | Ratings validate the body before checking the talk exists, so a bad score on a missing talk is 400, not 404 | `ConferenceService.rate` |
 | R9 | `title` is trimmed for the blank check, but `name` on update isn't (`"  "` is accepted) | `ConferenceService` |

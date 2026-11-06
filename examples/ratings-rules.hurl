@@ -195,8 +195,9 @@ HTTP 200
 jsonpath "$.ratingCount" == 1
 jsonpath "$.averageRating" == 5.0
 
-# Ranking on the average as shown (rounded): 4.25 shows as 4.3 and ties with 13/3 = 4.33, also
-# shown as 4.3, so the talk more reviewers rated comes first, although its raw average is lower.
+# Ranking on the average as shown (rounded to 2 decimals): 4, 4, 5 averages 4.33; 1, 4, 4, 5, 5 has
+# 5 ratings, so one 1 and one 5 are left out and it averages 4.33 too (3.8 untrimmed). On the same
+# average the talk more reviewers rated comes first.
 POST {{base_url}}/speakers
 {
   "name": "Grace Lovelace 4c3e",
@@ -219,14 +220,14 @@ three_reviewers: jsonpath "$.id"
 
 POST {{base_url}}/talks
 {
-  "title": "Four reviewers, 4.25",
+  "title": "Five reviewers, trimmed to 4.33",
   "format": "PRESENTATION",
   "level": "BEGINNER",
   "speakerId": {{rounding_speaker}}
 }
 HTTP 201
 [Captures]
-four_reviewers: jsonpath "$.id"
+five_reviewers: jsonpath "$.id"
 
 PUT {{base_url}}/talks/{{three_reviewers}}/ratings/1
 {
@@ -246,25 +247,31 @@ PUT {{base_url}}/talks/{{three_reviewers}}/ratings/3
 }
 HTTP 200
 
-PUT {{base_url}}/talks/{{four_reviewers}}/ratings/1
+PUT {{base_url}}/talks/{{five_reviewers}}/ratings/1
+{
+  "score": 1
+}
+HTTP 200
+
+PUT {{base_url}}/talks/{{five_reviewers}}/ratings/2
 {
   "score": 4
 }
 HTTP 200
 
-PUT {{base_url}}/talks/{{four_reviewers}}/ratings/2
+PUT {{base_url}}/talks/{{five_reviewers}}/ratings/3
 {
   "score": 4
 }
 HTTP 200
 
-PUT {{base_url}}/talks/{{four_reviewers}}/ratings/3
+PUT {{base_url}}/talks/{{five_reviewers}}/ratings/4
 {
-  "score": 4
+  "score": 5
 }
 HTTP 200
 
-PUT {{base_url}}/talks/{{four_reviewers}}/ratings/4
+PUT {{base_url}}/talks/{{five_reviewers}}/ratings/5
 {
   "score": 5
 }
@@ -274,10 +281,12 @@ GET {{base_url}}/talks?speakerId={{rounding_speaker}}&sort=rating
 HTTP 200
 [Asserts]
 jsonpath "$" count == 2
-jsonpath "$[0].id" == {{four_reviewers}}
-jsonpath "$[0].averageRating" == 4.3
+jsonpath "$[0].id" == {{five_reviewers}}
+jsonpath "$[0].averageRating" == 4.33
+jsonpath "$[0].ratingCount" == 5
 jsonpath "$[1].id" == {{three_reviewers}}
-jsonpath "$[1].averageRating" == 4.3
+jsonpath "$[1].averageRating" == 4.33
+jsonpath "$[1].ratingCount" == 3
 
 # Same average and same number of reviewers: talks still tied stay oldest first
 POST {{base_url}}/speakers

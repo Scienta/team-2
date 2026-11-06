@@ -2,10 +2,12 @@ package no.scienta.cfp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -87,5 +89,44 @@ class UtilsTest {
         SimpleDateFormat f = new SimpleDateFormat(Utils.DB_DATE_TIME);
         f.setTimeZone(TimeZone.getTimeZone("UTC"));
         assertEquals(f.format(new Date()), Utils.now());
+    }
+
+    @Test
+    void ratingAverageWithoutRatingsIsNull() {
+        assertNull(Utils.ratingAverage(0, 0, 0, 0));
+    }
+
+    @Test
+    void ratingAverageBelowFiveCountsEveryScore() {
+        assertEquals(5.0, average(5));
+        assertEquals(4.25, average(4, 4, 4, 5));
+        assertEquals(4.33, average(4, 4, 5));
+        assertEquals(4.67, average(4, 5, 5));
+        assertEquals(1.75, average(1, 2, 2, 2));
+    }
+
+    @Test
+    void ratingAverageFromFiveLeavesOutOneHighestAndOneLowest() {
+        assertEquals(5.0, average(1, 5, 5, 5, 5));
+        assertEquals(1.0, average(1, 1, 1, 1, 5));
+        assertEquals(3.0, average(3, 3, 3, 3, 3));
+        assertEquals(3.0, average(1, 2, 3, 4, 5));
+        assertEquals(4.0, average(1, 4, 4, 4, 4));
+        assertEquals(2.5, average(1, 2, 2, 3, 3, 5));
+        assertEquals(2.25, average(1, 2, 2, 2, 3, 5));
+        assertEquals(4.2, average(1, 4, 4, 4, 4, 5, 5));
+    }
+
+    @Test
+    void ratingAverageTiesAtTheThirdDecimalGoToTheEvenNeighbour() {
+        assertEquals(3.12, average(1, 3, 3, 3, 3, 3, 3, 3, 4, 5));
+        assertEquals(3.38, average(1, 3, 3, 3, 3, 3, 3, 4, 5, 5));
+    }
+
+    private static Double average(int... scores) {
+        int total = Arrays.stream(scores).sum();
+        int max = Arrays.stream(scores).max().getAsInt();
+        int min = Arrays.stream(scores).min().getAsInt();
+        return Utils.ratingAverage(total, scores.length, max, min);
     }
 }

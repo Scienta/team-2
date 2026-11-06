@@ -74,6 +74,8 @@ and `UNIQUE (talk_id)` are a backstop: a broken lock shows as a 500 (`ProgrammeT
 
 **Read a talk**: `TalkDao` loads the row, then `ConferenceService.addRatings` adds `ratingCount` and
 `averageRating` from `RatingDao.stats`, or `RatingDao.statsFor` (one query for the whole list) for lists.
+Both return count, sum, highest and lowest score; `Utils.ratingAverage` trims (5+ ratings) and rounds
+(2 decimals, half-even).
 
 ## Concurrency and platform constraints
 

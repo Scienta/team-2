@@ -22,7 +22,7 @@ HTTP 201
 [Captures]
 talk_id: jsonpath "$.id"
 
-# 4, 4, 4, 5 averages 4.25, shown half up as 4.3
+# 4, 4, 4, 5 averages 4.25 (2 decimals; fewer than 5 ratings, so every score counts)
 PUT {{base_url}}/talks/{{talk_id}}/ratings/1
 { "score": 4 }
 HTTP 200
@@ -42,7 +42,7 @@ HTTP 200
 GET {{base_url}}/talks/{{talk_id}}
 HTTP 200
 [Asserts]
-jsonpath "$.averageRating" == 4.3
+jsonpath "$.averageRating" == 4.25
 jsonpath "$.ratingCount" == 4
 
 # Invalid scores give 400
