@@ -12,8 +12,7 @@ pattern="(^|[^/[:alnum:]_.])($dirs)/|making_a_plan|making_a_master_plan|phase_ex
 
 if git grep -nE "$pattern" -- . \
     ':!src' ':!target' ':!todo' ':!done' ':!workflow/plans' \
-    ':!workflow/scripts/check-paths.sh' ':!**/workflow_reorg_plan*.md' \
-    ':!README.md'; then
+    ':!workflow/scripts/check-paths.sh' ':!**/workflow_reorg_plan*.md'; then
     echo "stale paths found (see above)" >&2
     exit 1
 fi

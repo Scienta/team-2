@@ -10,7 +10,7 @@ Optional tail (as budget allows, in this order):
 - [x] Phase 4: Turn the planning skills into Claude Code skills (`.claude/skills/*/SKILL.md`)
 - [x] Phase 5: Gate scripts in `workflow/scripts/` (REVIEW check, stale-path check, harness client), with a test
 - [x] Phase 6: Process artifacts: spec and plan templates, pre-claim checklist, skills `spec-from-request` and `pre-claim`
-- [ ] Phase 7: Review agents (`plan-reviewer`, `spec-checker`), `.claude/settings.json`, `workflow/README.md`
+- [x] Phase 7: Review agents (`plan-reviewer`, `spec-checker`), `.claude/settings.json`, `workflow/README.md`
 
 Last (after `ratings-verify` is merged):
 - [ ] Phase 8: Move `todo/` and `done/` to `workflow/plans/`, update `REVIEW.md` §1 links, final gate, move this plan to done, ask about pushing

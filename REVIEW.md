@@ -34,8 +34,10 @@ and the claim):
 6. **PR in the GitHub UI**, merge to `main` deploys, check `/health` shows the new SHA.
 7. **Evidence, then a person claims**, then a row in the claim log below.
 
-Team rules for agents: [`.claude/rules/project.md`](.claude/rules/project.md) (moving the rest of
-`AGENTS.md`'s team half to `.claude/rules/`). ADRs: [`workflow/adrs/`](workflow/adrs/).
+The whole flow on one screen: [`workflow/README.md`](workflow/README.md). Team rules for agents:
+[`.claude/rules/`](.claude/rules/) (`AGENTS.md` sends every agent there). Skills:
+[`.claude/skills/`](.claude/skills/). Review agents: [`.claude/agents/`](.claude/agents/). ADRs:
+[`workflow/adrs/`](workflow/adrs/).
 
 ## 2. How we reviewed agent output
 
@@ -83,6 +85,16 @@ workflow: open status-code decisions on a drip feature go to the product owner b
 - **Cross-tool plan review** (`todo/*_plan_review.md`): Blocking / Significant / Minor / What's good,
   with file:line.
 - **Spec copies** in `workflow/specs/`, so agents work offline from the harness rate limit.
+- **Spec template with an "ask the PO" column** [`workflow/templates/spec.md`](workflow/templates/spec.md)
+  and the skill [`/spec-from-request`](.claude/skills/spec-from-request/SKILL.md): born from the
+  co-speakers miss in §4.
+- **Pre-claim gate** [`workflow/checklists/pre-claim.md`](workflow/checklists/pre-claim.md), run by
+  [`/pre-claim`](.claude/skills/pre-claim/SKILL.md) with the
+  [`spec-checker`](.claude/agents/spec-checker.md) agent.
+- **Plan reviewer agent** [`.claude/agents/plan-reviewer.md`](.claude/agents/plan-reviewer.md): the
+  review rubric, with our two real misses as examples.
+- **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
+  never prints the token, and a `REVIEW.md` check with its own test.
 
 ## 6. One thing we'd do differently
 

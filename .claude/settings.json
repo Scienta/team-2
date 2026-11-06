@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw:*)",
+      "Bash(examples/run.sh:*)",
+      "Bash(workflow/scripts/*)",
+      "Bash(docker info:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(.fagdag/harness-token)"
+    ]
+  }
+}
