@@ -53,5 +53,9 @@ do as follows:
 1. See if there are any remaining, required updates to ADRs in `workflow/adrs`,
    if any architecture driving decisions have been made through the work.
 2. Move the plan (and its review) from `workflow/plans/todo/` to `workflow/plans/done/` with `git mv`
-3. Commit the final changes to git
-4. Ask the human whether to push to the remote. Remember that merging to `main` deploys.
+3. Update `REVIEW.md` following `.claude/rules/review-log.md`: at least the workflow (§1) and
+   artifacts (§5) if they changed, a §2 story for every bug a review caught during this plan, and
+   a draft claim-log row (§3) with the evidence. Then run `workflow/scripts/check-review.sh` and
+   include the headings it still lists in your report.
+4. Commit the final changes to git
+5. Ask the human whether to push to the remote. Remember that merging to `main` deploys.
