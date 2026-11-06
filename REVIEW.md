@@ -64,6 +64,11 @@ the talks spec allows three. The plan review caught it before execution; the tes
 on a 409 before testing any ranking. The review of the reorg plan also caught that a per-line
 HTML-comment check would have reported an empty claim-log section as filled.
 
+**Bug a person's PR review caught:** the coverage ratchet (PR #8) checked each branch against its
+own floor. The reviewer pointed out that two parallel PRs can each pass and still break `main`
+together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: update the branch with
+`main` and set the floor from that run before merging (`workflow/coverage/README.md`).
+
 ## 3. Claim log
 
 | Feature | Claimed or skipped | Tick | Evidence before claiming |

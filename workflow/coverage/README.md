@@ -38,3 +38,22 @@ Floor in pom:  0.722
   to the old floor.
 - Lowering the floor needs explicit consent from a person on the team (deleting well-tested code
   can lower the ratio without anything being wrong). Never lower it just to make the build pass.
+- The floor is strict: with about 400 lines, one new untested line fails the build. New code must
+  be covered at least as well as the codebase as a whole.
+
+## Before merging
+
+Parallel PRs can each pass on their own branch and still break `main` together: PR A raises the
+floor, PR B adds less-tested code. The deploy still goes through (the `Dockerfile` skips tests), but
+the CI `tests` job fails without anyone seeing it (`continue-on-error`), and the next
+`./mvnw package` is red. So before merging:
+
+1. Update the branch with the latest `main` (merge or rebase).
+2. Run `./mvnw package` and `workflow/coverage/line-coverage.sh`.
+3. Set the floor from that run, and commit.
+
+## Quick fix under time pressure
+
+A person on the team may agree to lower the floor to the ratio `line-coverage.sh` prints. Lower it
+in the same PR, say so in the PR description, and add the missing tests in a follow-up that raises
+the floor again.
