@@ -102,9 +102,17 @@ We changed the workflow accordingly: the spec template has an "Ask the PO?" colu
 flags such decisions, and `/pre-claim` won't say yes without the PO's answers.
 
 Fix: PR #7 (`c4a6dd9`) answers 400 for the main speaker and 404 for removing someone who isn't a
-co-speaker, deployed as `4ee0b38`. At tick 90 the harness's latest runs of check-1 and check-2
-still showed the old answers (200, 409), so they likely ran before the deploy. TODO(human): confirm
-the checks go OK, and record the bleed (−29.33 points at tick 90).
+co-speaker, deployed as `4ee0b38`. The harness timeline shows check-1 and check-2 FAULTY on ticks
+69–90 and OK from tick 91. Total bleed was −29.33 at tick 90.
+
+**A deploy can cost points, even with no change in behaviour.** At tick 121, 15 of the 18 claimed
+checks went FAULTY for that one tick, all on `POST /speakers`, and bleed went from −30.93 (tick 119)
+to −37.83 (tick 122). The container logs line up with the rollout of `3cc2288` (PR #8, build and
+docs only): the new revision had started by 13:27:07Z and the old one shut down at 13:27:42Z. It
+happened again at tick 126: 7 checks, bleed −37.83 to −41.93, as the rollout of `2ce9c6b` (PR #9)
+shut down the old revision at 13:33:19Z. Tick 102 (two checks, also `POST /speakers`, no response
+recorded) came soon after the deploy of `33ad4c3`. We didn't see this because we only looked at
+current status, not the timeline.
 
 ## 5. Reusable artifacts
 
@@ -131,4 +139,7 @@ the checks go OK, and record the bleed (−29.33 points at tick 90).
 
 ## 6. One thing we'd do differently
 
-TODO(human)
+Candidate: don't merge docs-only PRs on their own, since every push to `main` redeploys and a
+rollout can bleed points (§4, tick 121). Batch them with the next feature merge.
+
+TODO(human): pick the one thing we'd do differently (this candidate or another).
