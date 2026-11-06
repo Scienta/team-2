@@ -50,6 +50,13 @@ public class ProgrammeDao {
                 slot.name(), except.name());
     }
 
+    /**
+     * Returns the number of rows deleted: 1, or 0 if the place was empty.
+     */
+    public int delete(Room room, Slot slot) {
+        return jdbc.update("DELETE FROM programme_entry WHERE room = ? AND slot = ?", room.name(), slot.name());
+    }
+
     public void insert(Room room, Slot slot, long talkId) {
         jdbc.update("INSERT INTO programme_entry (room, slot, talk_id) VALUES (?, ?, ?)", room.name(), slot.name(),
                 talkId);

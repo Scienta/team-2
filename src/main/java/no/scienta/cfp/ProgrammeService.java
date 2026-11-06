@@ -17,8 +17,9 @@ import no.scienta.cfp.SchedulingRules.Violation;
 import no.scienta.cfp.Venue.Place;
 
 /**
- * Puts talks on the programme and looks up what's in a room and slot (workflow/specs/scheduling.md). Locks the talk,
- * then the slot, reads the facts under the locks and leaves the decision to {@link SchedulingRules}.
+ * Puts talks on the programme, takes them out and looks up what's in a room and slot
+ * (workflow/specs/scheduling.md). Locks the talk, then the slot, reads the facts under the locks and leaves the
+ * decision to {@link SchedulingRules}.
  */
 @Service
 public class ProgrammeService {
@@ -59,7 +60,16 @@ public class ProgrammeService {
         Place place = place(room, slot);
         return programmeDao.find(place.room(), place.slot())
                 .map(talkId -> ProgrammeEntry.of(place, talkId))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "nothing in this room and slot"));
+                .orElseThrow(ProgrammeService::nothingThere);
+    }
+
+    @Transactional
+    public void unschedule(String room, String slot) {
+        Place place = place(room, slot);
+        programmeDao.lockSlot(place.slot());
+        if (programmeDao.delete(place.room(), place.slot()) == 0) {
+            throw nothingThere();
+        }
     }
 
     private List<Candidate> othersInSlot(Place target) {
@@ -67,6 +77,10 @@ public class ProgrammeService {
                 .map(talkDao::findById)
                 .map(Candidate::of)
                 .toList();
+    }
+
+    private static ResponseStatusException nothingThere() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "nothing in this room and slot");
     }
 
     private static Place place(String room, String slot) {

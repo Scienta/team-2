@@ -82,6 +82,7 @@ class ProgrammeTest {
         long talk = acceptedTalk("PRESENTATION");
         assertEquals(404, send("PUT", "/programme/" + place, talkIdBody(talk), "application/json").statusCode());
         assertEquals(404, send("GET", "/programme/" + place, null, null).statusCode());
+        assertEquals(404, send("DELETE", "/programme/" + place, null, null).statusCode());
         assertEquals(0, entries());
     }
 
@@ -198,6 +199,32 @@ class ProgrammeTest {
         assertEquals(200, schedule("R1", "S1", talk).statusCode());
         HttpResponse<String> res = send("GET", "/talks/" + talk, null, null);
         assertEquals(WireFormatTest.TALK_KEYS, WireFormatTest.keys(res.body()));
+    }
+
+    // ---------------------------------------------------------------- DELETE
+
+    @Test
+    void takingATalkOutLeavesThePlaceEmpty() throws Exception {
+        assertEquals(200, schedule("R2", "S3", acceptedTalk("PRESENTATION")).statusCode());
+        HttpResponse<String> res = send("DELETE", "/programme/R2/S3", null, null);
+        assertEquals(204, res.statusCode(), res.body());
+        assertEquals("", res.body());
+        assertEquals(404, send("GET", "/programme/R2/S3", null, null).statusCode());
+    }
+
+    @Test
+    void takingOutOfAnEmptyPlaceIsNotFound() throws Exception {
+        assertEquals(404, send("DELETE", "/programme/R1/S1", null, null).statusCode());
+    }
+
+    @Test
+    void aTalkTakenOutCanGoSomewhereElse() throws Exception {
+        long talk = acceptedTalk("PRESENTATION");
+        assertEquals(200, schedule("R1", "S1", talk).statusCode());
+        assertEquals(204, send("DELETE", "/programme/R1/S1", null, null).statusCode());
+        assertEquals(200, schedule("R3", "S2", talk).statusCode());
+        assertEquals(talk, talkIn("R3", "S2"));
+        assertEquals(1, entries());
     }
 
     @Test
