@@ -70,7 +70,7 @@ old data too. Like the Maven job it doesn't hold back a deploy; a red PR check i
   class per feature (`CoSpeakersTest`, `RatingsTest`, …).
 - **Coverage ratchet:** JaCoCo measures which production code the tests visit, and `./mvnw package`
   fails if line coverage drops below the floor in `pom.xml` (started at 72.2 %, 278/385 lines). A
-  change that raised coverage raised the floor, until we froze it at 0.862 (#43): with several PRs
+  change that raised coverage raised the floor, until we froze it at 0.870 (#43): with several PRs
   open at once, every merge raised it and the other PRs conflicted on that line. Report in
   `target/site/jacoco/index.html`, summary from `workflow/coverage/line-coverage.sh`
   ([`workflow/coverage/`](workflow/coverage/README.md)).
@@ -201,7 +201,7 @@ current status, not the timeline.
 failing request: `POST /workshops/{id}/registrations` for an accepted `LIGHTNING_10` talk, which we
 answered 404 "workshop not found" (decision D2: "it isn't a workshop, so that resource doesn't
 exist"). The harness wants something else. Our tests pinned our own guess, and the risk list didn't
-flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4).
+flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4). After that deploy (tick 217) check-2 got past the `POST` and failed on the next request, `GET` on the same talk (404, flagged as a risk in PR #38); second fix: 200 `[]`.
 TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
 
 ## 5. Reusable artifacts
@@ -226,7 +226,7 @@ TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
   review rubric, with our two real misses as examples.
 - **Coverage floor** [`workflow/coverage/`](workflow/coverage/README.md): JaCoCo `check` with a
   floor property in `pom.xml`, plus a script that prints the current ratio. We ran it as a ratchet
-  (only goes up) and froze it at 0.862 once parallel PRs kept conflicting on it. No extra tools, works on any Maven project.
+  (only goes up) and froze it at 0.870 once parallel PRs kept conflicting on it. No extra tools, works on any Maven project.
 - **Risk list skill** [`.claude/skills/list-risks/`](.claude/skills/list-risks/SKILL.md): every
   behaviour change ships with a list of what could break on the harness, ordered by likelihood, each
   with the fallback, and is checked off after the deploy. Works for any change where an external

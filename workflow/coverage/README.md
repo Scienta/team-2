@@ -30,16 +30,16 @@ Ratio:         0.790 (rounded down, the value for coverage.line.minimum)
 Floor in pom:  0.790
 ```
 
-## The floor is frozen at 0.862
+## The floor is frozen at 0.870
 
 - `coverage.line.minimum` in `pom.xml` is the floor: `./mvnw package` fails when line coverage is
   below it. A coverage drop is a broken window; fix it with tests.
-- **Frozen on 2026-11-06 at 0.862** (issue #43). Until then every change that raised coverage
+- **Frozen on 2026-11-06 at 0.870** (issue #43). Until then every change that raised coverage
   raised the floor too, so with several PRs open at once each merge raised it again and every other
   open PR conflicted on that one line of `pom.xml` (PRs #31 and #42 needed a merge each).
 - **Don't change the floor.** Agents don't raise it and don't lower it, also when coverage went up.
   Only a person on the team changes it, in its own PR.
-- New code still needs tests: a change that drops coverage below 0.862 fails the build.
+- New code still needs tests: a change that drops coverage below 0.870 fails the build.
 
 ## Before merging
 
