@@ -86,7 +86,7 @@ HTTP 409
 
 # D3: the main speaker
 PUT {{base_url}}/talks/{{talk_id}}/co-speakers/{{main_id}}
-HTTP 409
+HTTP 400
 
 # D1, D2: unknown talk or speaker
 PUT {{base_url}}/talks/999999999/co-speakers/{{first_id}}
@@ -114,8 +114,11 @@ HTTP 200
 jsonpath "$.coSpeakerIds[0]" == {{first_id}}
 jsonpath "$.coSpeakerIds[1]" == {{second_id}}
 
-# D6: removing someone who isn't a co-speaker changes nothing
+# D6: removing someone who isn't a co-speaker
 DELETE {{base_url}}/talks/{{talk_id}}/co-speakers/{{third_id}}
+HTTP 404
+
+GET {{base_url}}/talks/{{talk_id}}
 HTTP 200
 [Asserts]
 jsonpath "$.coSpeakerIds" count == 2

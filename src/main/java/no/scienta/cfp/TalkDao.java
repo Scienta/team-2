@@ -69,8 +69,8 @@ public class TalkDao {
         jdbc.update("INSERT INTO talk_co_speaker (talk_id, speaker_id) VALUES (?, ?)", talkId, speakerId);
     }
 
-    public void removeCoSpeaker(long talkId, long speakerId) {
-        jdbc.update("DELETE FROM talk_co_speaker WHERE talk_id = ? AND speaker_id = ?", talkId, speakerId);
+    public int removeCoSpeaker(long talkId, long speakerId) {
+        return jdbc.update("DELETE FROM talk_co_speaker WHERE talk_id = ? AND speaker_id = ?", talkId, speakerId);
     }
 
     /**
