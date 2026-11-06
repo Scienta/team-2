@@ -51,6 +51,11 @@ each event (review caught a bug, claim, harness surprise, new artifact) to its s
 - **Decisions** the spec leaves open were approved by a person (recorded in the plan).
 - **Tests:** `./mvnw package` with Testcontainers Postgres after every phase; one integration test
   class per feature (`CoSpeakersTest`, `RatingsTest`, …).
+- **Coverage ratchet:** JaCoCo measures which production code the tests visit, and `./mvnw package`
+  fails if line coverage drops below the floor in `pom.xml` (started at 72.2 %, 278/385 lines). A
+  change that raises coverage raises the floor; lowering it needs a person's consent. Report in
+  `target/site/jacoco/index.html`, summary from `workflow/coverage/line-coverage.sh`
+  ([`workflow/coverage/`](workflow/coverage/README.md)).
 - **Hurl examples** in `examples/` against a local service, then against our URL.
 - **Harness feedback** (`/api/teams/team-2/feedback`) after deploy.
 
@@ -58,6 +63,11 @@ each event (review caught a bug, claim, harness surprise, new artifact) to its s
 the talks spec allows three. The plan review caught it before execution; the test would have failed
 on a 409 before testing any ranking. The review of the reorg plan also caught that a per-line
 HTML-comment check would have reported an empty claim-log section as filled.
+
+**Bug a person's PR review caught:** the coverage ratchet (PR #8) checked each branch against its
+own floor. The reviewer pointed out that two parallel PRs can each pass and still break `main`
+together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: update the branch with
+`main` and set the floor from that run before merging (`workflow/coverage/README.md`).
 
 ## 3. Claim log
 
@@ -104,6 +114,9 @@ the checks go OK, and record the bleed (−29.33 points at tick 90).
   [`spec-checker`](.claude/agents/spec-checker.md) agent.
 - **Plan reviewer agent** [`.claude/agents/plan-reviewer.md`](.claude/agents/plan-reviewer.md): the
   review rubric, with our two real misses as examples.
+- **Coverage ratchet** [`workflow/coverage/`](workflow/coverage/README.md): JaCoCo `check` with a
+  floor property in `pom.xml` that only goes up, plus a script that prints the value to raise it
+  to. No extra tools, works on any Maven project.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
 

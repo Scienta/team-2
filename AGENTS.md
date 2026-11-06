@@ -83,6 +83,7 @@ loads them automatically; other agents (Copilot CLI, Codex, …) read them expli
 
 Non-negotiables, in case you read nothing else:
 - Plan first (`.claude/rules/team-workflow.md`, "Planning and Execution"), then execute phase by phase.
-- No broken windows: `./mvnw package` green, no warnings, before you finish.
+- No broken windows: `./mvnw package` green, no warnings, before you finish. The build fails if
+  line coverage drops (`workflow/coverage/README.md`).
 - All changes via a feature branch and a PR made by a person in the GitHub UI. Don't use `gh`.
 - Merging to `main` deploys. Never claim a feature or say it's done without checkable evidence.

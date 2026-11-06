@@ -28,6 +28,7 @@ feature request on the harness
 | [`scripts/harness.sh`](scripts/harness.sh) | Harness API client (spec, feedback, timeline), handles `429`, never prints the token |
 | [`scripts/check-review.sh`](scripts/check-review.sh) | Every `REVIEW.md` heading has our text (run before 17:00); tested by `test-check-review.sh` |
 | [`scripts/check-paths.sh`](scripts/check-paths.sh) | No references to paths that moved |
+| [`coverage/`](coverage/) | JaCoCo line coverage ratchet: the build fails if coverage drops; `line-coverage.sh` prints it |
 | [`./adrs/`](./adrs/) | Architecture decision records |
 | [`../.claude/rules/`](../.claude/rules/) | Team rules: `team-workflow.md`, `project.md` |
 | [`../.claude/skills/`](../.claude/skills/) | `make-plan`, `make-master-plan`, `execute-plan`, `spec-from-request`, `pre-claim` |

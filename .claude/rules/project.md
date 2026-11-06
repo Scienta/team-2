@@ -26,3 +26,4 @@ Match the existing code:
   `TestDatabase.fresh(registry)` in a `@DynamicPropertySource` method; see `TalksTest`
 - Docker must be running: the tests start Postgres with Testcontainers
 - Behaviour visible over HTTP also gets a Hurl example in `examples/`
+- Line coverage may not drop: see `workflow/coverage/README.md`
