@@ -1,6 +1,6 @@
 # Plan: Acceptance state machine
 
-- [ ] Phase 1: Committee decisions, `PUT /talks/{id}/status` (D1 to D5, D11 to D13, D16), with `AcceptanceTest`
+- [x] Phase 1: Committee decisions, `PUT /talks/{id}/status` (D1 to D5, D11 to D13, D16), with `AcceptanceTest`
 - [ ] Phase 2: Withdrawal, `POST /talks/{id}/withdraw` (D6 to D10, D14)
 - [ ] Phase 3: Concurrency tests (D15); then offer the push and PR (review M7)
 - [ ] Phase 4: Hurl example `examples/acceptance.hurl`, run against a local service

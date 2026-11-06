@@ -240,6 +240,46 @@ public class ConferenceService {
         // return Utils.roundRating((double) total / count);
     }
 
+    // ---------------------------------------------------------------- acceptance
+
+    private static final List<String> DECISIONS = Arrays.asList("ACCEPTED", "REJECTED", "WAITLISTED");
+
+    @Transactional
+    public TalkDto decide(long talkId, Map<String, Object> body) {
+        if (!talkDao.lock(talkId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "talk not found");
+        }
+        Object status = body.get("status");
+        if (!(status instanceof String) || !DECISIONS.contains(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "status must be one of " + DECISIONS);
+        }
+        TalkDto talk = getTalk(talkId);
+        if (!allowed(talk.status, (String) status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "a " + talk.status + " talk can't become " + status);
+        }
+        if (status.equals("ACCEPTED") && talk.ratingCount < 2) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "a talk needs ratings from at least 2 reviewers to be accepted");
+        }
+        talkDao.updateStatus(talkId, (String) status);
+        return getTalk(talkId);
+    }
+
+    /**
+     * The acceptance state machine (workflow/specs/acceptance.md). Anything not listed, including a repeat, is refused.
+     */
+    private static boolean allowed(String from, String to) {
+        switch (from) {
+            case "SUBMITTED":
+                return true;
+            case "WAITLISTED":
+                return !to.equals("WAITLISTED");
+            case "ACCEPTED":
+                return to.equals("WITHDRAWN");
+            default:
+                return false;
+        }
+    }
+
     // ---------------------------------------------------------------- co-speakers
 
     @Transactional
