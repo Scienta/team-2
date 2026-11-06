@@ -16,6 +16,8 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class WorkshopService {
 
+    private static final int MAX_ATTENDEES = 20;
+
     private static final Pattern EDGE_WHITESPACE = Pattern.compile("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$");
     private static final Pattern UNSTORABLE = Pattern.compile("[\\p{Cntrl}\\p{Cs}]");
     private static final Pattern EMAIL = Pattern.compile("^[^\\s\\p{Z}@]+@[^\\s\\p{Z}@]+\\.[^\\s\\p{Z}@]+$");
@@ -43,8 +45,15 @@ public class WorkshopService {
         if (!status.equals("ACCEPTED")) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "a " + status + " workshop doesn't take registrations");
         }
+        if (registrationDao.count(workshopId) >= MAX_ATTENDEES) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "this workshop is full");
+        }
+        Long id = registrationDao.insert(workshopId, name, email, trimmedEmail.toLowerCase(Locale.ROOT));
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "this email is already registered for this workshop");
+        }
         RegistrationDto registration = new RegistrationDto();
-        registration.id = registrationDao.insert(workshopId, name, email, trimmedEmail.toLowerCase(Locale.ROOT));
+        registration.id = id;
         registration.workshopId = workshopId;
         registration.name = name;
         registration.email = email;

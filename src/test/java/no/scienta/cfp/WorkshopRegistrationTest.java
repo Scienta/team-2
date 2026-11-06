@@ -2,16 +2,27 @@ package no.scienta.cfp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +37,7 @@ import org.springframework.test.context.DynamicPropertySource;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class WorkshopRegistrationTest {
 
+    private static final Logger log = LoggerFactory.getLogger(WorkshopRegistrationTest.class);
     private static final long MISSING_TALK = 2147483647L;
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -185,6 +197,124 @@ class WorkshopRegistrationTest {
         assertEquals(404, post(MISSING_TALK, badField).statusCode(), "missing talk before the fields");
         long submitted = newTalk(newSpeaker(), "WORKSHOP");
         assertEquals(400, post(submitted, badField).statusCode(), "the fields before the status");
+    }
+
+    @Test
+    void twentyFitAndTheTwentyFirstIs409() throws Exception {
+        long workshop = acceptedWorkshop();
+        for (int i = 0; i < 20; i++) {
+            assertEquals(201, register(workshop, "Attendee " + i, "a" + i + "@example.com").statusCode());
+        }
+        assertEquals(409, register(workshop, "One too many", "late@example.com").statusCode());
+        assertEquals(20, list(workshop).size());
+    }
+
+    @Test
+    void sameEmailTwiceIs409() throws Exception {
+        long workshop = acceptedWorkshop();
+        assertEquals(201, register(workshop, "Ada", "ada@example.com").statusCode());
+        for (String email : new String[] {"ada@example.com", "ADA@Example.com", " ada@example.com ", " ada@example.com"}) {
+            assertEquals(409, register(workshop, "Ada again", email).statusCode(), email);
+        }
+        JsonNode list = list(workshop);
+        assertEquals(1, list.size(), list.toString());
+        assertEquals("Ada", list.get(0).get("name").asText());
+    }
+
+    @Test
+    void sameEmailOnAnotherWorkshopIsFine() throws Exception {
+        assertEquals(201, register(acceptedWorkshop(), "Ada", "ada@example.com").statusCode());
+        assertEquals(201, register(acceptedWorkshop(), "Ada", "ada@example.com").statusCode());
+    }
+
+    @Test
+    void aRushNeverOverfills() throws Exception {
+        long workshop = acceptedWorkshop();
+        List<String> bodies = new ArrayList<>();
+        for (int i = 0; i < 60; i++) {
+            bodies.add(registrationJson("Attendee " + i, "rush" + i + "@example.com"));
+        }
+        long start = System.nanoTime();
+        List<HttpResponse<String>> responses = postAll(workshop, bodies);
+        log.info("a rush of {} took {} ms", bodies.size(), (System.nanoTime() - start) / 1_000_000);
+
+        assertEquals(20, countStatus(responses, 201));
+        assertEquals(40, countStatus(responses, 409));
+        JsonNode list = list(workshop);
+        assertEquals(20, list.size(), list.toString());
+        Set<Long> ids = new HashSet<>();
+        for (JsonNode registration : list) {
+            ids.add(registration.get("id").asLong());
+        }
+        assertEquals(20, ids.size());
+    }
+
+    @Test
+    void aRushWithOneEmailRegistersOnce() throws Exception {
+        long workshop = acceptedWorkshop();
+        List<String> bodies = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            bodies.add(registrationJson("Ada", i % 2 == 0 ? "ada@example.com" : "ADA@Example.com"));
+        }
+        List<HttpResponse<String>> responses = postAll(workshop, bodies);
+        assertEquals(1, countStatus(responses, 201));
+        assertEquals(19, countStatus(responses, 409));
+        assertEquals(1, list(workshop).size());
+    }
+
+    // Fails if the status comes from before the lock: the withdrawal commits while the registration waits for the row.
+    @Test
+    void aRegistrationWaitingForTheLockSeesTheWithdrawal() throws Exception {
+        long workshop = acceptedWorkshop();
+        CompletableFuture<HttpResponse<String>> waiting;
+        try (Connection c = jdbc.getDataSource().getConnection()) {
+            c.setAutoCommit(false);
+            try (PreparedStatement lock = c.prepareStatement("SELECT id FROM talk WHERE id = ? FOR UPDATE")) {
+                lock.setLong(1, workshop);
+                lock.executeQuery();
+            }
+            waiting = http.sendAsync(request("POST", "/workshops/" + workshop + "/registrations",
+                    registrationJson("Ada", "ada@example.com"), "application/json"), HttpResponse.BodyHandlers.ofString());
+            awaitASessionWaitingForALock();
+            try (PreparedStatement withdraw = c.prepareStatement("UPDATE talk SET status = 'WITHDRAWN' WHERE id = ?")) {
+                withdraw.setLong(1, workshop);
+                withdraw.executeUpdate();
+            }
+            c.commit();
+        }
+        HttpResponse<String> res = waiting.get(10, TimeUnit.SECONDS);
+        assertEquals(409, res.statusCode(), res.body());
+        assertEquals(0, list(workshop).size());
+    }
+
+    private void awaitASessionWaitingForALock() throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (System.nanoTime() < deadline) {
+            Integer waiting = jdbc.queryForObject("SELECT COUNT(*) FROM pg_stat_activity "
+                    + "WHERE datname = current_database() AND wait_event_type = 'Lock'", Integer.class);
+            if (waiting != null && waiting > 0) {
+                return;
+            }
+            Thread.sleep(20);
+        }
+        fail("the registration never waited for the lock");
+    }
+
+    private List<HttpResponse<String>> postAll(long workshop, List<String> bodies) throws Exception {
+        List<CompletableFuture<HttpResponse<String>>> futures = new ArrayList<>();
+        for (String body : bodies) {
+            futures.add(http.sendAsync(request("POST", "/workshops/" + workshop + "/registrations", body, "application/json"),
+                    HttpResponse.BodyHandlers.ofString()));
+        }
+        List<HttpResponse<String>> responses = new ArrayList<>();
+        for (CompletableFuture<HttpResponse<String>> future : futures) {
+            responses.add(future.get(60, TimeUnit.SECONDS));
+        }
+        return responses;
+    }
+
+    private static long countStatus(List<HttpResponse<String>> responses, int status) {
+        return responses.stream().filter(r -> r.statusCode() == status).count();
     }
 
     private long acceptedWorkshop() throws Exception {
