@@ -184,6 +184,13 @@ shut down the old revision at 13:33:19Z. Tick 102 (two checks, also `POST /speak
 recorded) came soon after the deploy of `33ad4c3`. We didn't see this because we only looked at
 current status, not the timeline.
 
+**Workshop registration, claimed at tick 205, check-2 FAULTY from tick 206.** The transcript's
+failing request: `POST /workshops/{id}/registrations` for an accepted `LIGHTNING_10` talk, which we
+answered 404 "workshop not found" (decision D2: "it isn't a workshop, so that resource doesn't
+exist"). The harness wants something else. Our tests pinned our own guess, and the risk list didn't
+flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4).
+TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
+
 ## 5. Reusable artifacts
 
 - **CI clean build** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):

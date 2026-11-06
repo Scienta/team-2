@@ -69,7 +69,7 @@ feedback shows no checks for a feature until it is claimed (0/0, timeline 404), 
 | ID | Question | Our answer | Ask the PO? | Approved by (person, PO answer) |
 |---|---|---|---|---|
 | D1 | `POST` or `GET` with an unknown talk id | 404, like every other talk endpoint | yes | Håkon, 2026-11-06 |
-| D2 | `POST` or `GET` on a talk that exists but isn't a `WORKSHOP` | 404: it isn't a workshop, so that resource doesn't exist | yes | Håkon, 2026-11-06 |
+| D2 | `POST` or `GET` on a talk that exists but isn't a `WORKSHOP` | **Revised (#37):** `POST` gives 409, after body validation (400): the harness's check-2 failed on 404 for an accepted `LIGHTNING_10` talk, ticks 206–208. `GET` stays 404 (no check has failed on it) | yes | Håkon, 2026-11-06; revised after harness feedback |
 | D3 | `POST` to a workshop that is `SUBMITTED`, `WAITLISTED` or `REJECTED` | 409, nothing stored | yes | Håkon, 2026-11-06 |
 | D4 | `POST` to a workshop that was accepted and then `WITHDRAWN` | 409, nothing stored; the people already registered stay | yes | Håkon, 2026-11-06 |
 | D5 | `GET` on a workshop that isn't accepted, or is withdrawn | 200 with the list: `[]` if nobody registered, otherwise the people registered before the withdrawal | yes | Håkon, 2026-11-06 |

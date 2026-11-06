@@ -18,7 +18,7 @@
         <spring-boot.version>4.1.2</spring-boot.version>
         <jacoco.version>0.8.16</jacoco.version>
         <!-- Line coverage floor, only ever raised: see workflow/coverage/README.md -->
-        <coverage.line.minimum>0.833</coverage.line.minimum>
+        <coverage.line.minimum>0.836</coverage.line.minimum>
     </properties>
 
     <!-- We can't use spring-boot-starter-parent because of the old company parent pom,

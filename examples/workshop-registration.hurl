@@ -99,14 +99,14 @@ POST {{base_url}}/workshops/{{workshop}}/registrations
 { "name": "Cyd", "email": "not-an-email" }
 HTTP 400
 
-# Unknown talk, and a talk that isn't a workshop (D1, D2)
+# Unknown talk 404 (D1); a talk that isn't a workshop 409 (D2, revised after harness check-2)
 POST {{base_url}}/workshops/2147483647/registrations
 { "name": "Cyd", "email": "cyd@example.com" }
 HTTP 404
 
 POST {{base_url}}/workshops/{{presentation}}/registrations
 { "name": "Cyd", "email": "cyd@example.com" }
-HTTP 404
+HTTP 409
 
 # A workshop that isn't accepted takes no registrations, and its list is empty (D3, D5)
 POST {{base_url}}/workshops/{{not_accepted}}/registrations
