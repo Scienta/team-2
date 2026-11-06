@@ -23,10 +23,10 @@ HTTP ──> Controllers ──> ConferenceService ──> DAOs ──> Postgres
 
 | Layer | Classes | Role |
 |---|---|---|
-| Controllers | `SpeakerController`, `TalkController`, `ReportController`, `HealthController` | Map routes to service calls. Little logic of their own. |
-| Service | `ConferenceService` | All business rules: validation, the submission limit, durations, rating averages, sorting, statistics. Throws `ResponseStatusException` for 4xx. |
-| DAOs | `SpeakerDao`, `TalkDao`, `RatingDao` | SQL via `JdbcTemplate`. Speakers come back as `Map<String, Object>`, talks as `TalkDto`. |
-| DTOs / forms | `SpeakerForm`, `TalkForm`, `TalkDto` | Request and response bodies. `SpeakerForm` has bean-validation annotations; `TalkForm` is validated by hand in the service. |
+| Controllers | `SpeakerController`, `TalkController`, `WorkshopController`, `ReportController`, `HealthController` | Map routes to service calls. Little logic of their own. |
+| Service | `ConferenceService`, `WorkshopService` | All business rules: validation, the submission limit, durations, rating averages, sorting, statistics; workshop registration in its own service. Throws `ResponseStatusException` for 4xx. |
+| DAOs | `SpeakerDao`, `TalkDao`, `RatingDao`, `RegistrationDao` | SQL via `JdbcTemplate`. Speakers come back as `Map<String, Object>`, talks as `TalkDto`. |
+| DTOs / forms | `SpeakerForm`, `TalkForm`, `TalkDto`, `RegistrationDto` | Request and response bodies. `SpeakerForm` has bean-validation annotations; `TalkForm` is validated by hand in the service. |
 | Support | `Utils`, `NotificationService`, `VersionInfoContributor` | Date formatting, CSV escaping, rounding; e-mail stub (logs only, `cfp.mail.enabled=false`); versions on `/actuator/info`. |
 | Web config | `WebConfig`, `FieldErrorMixin` | `UrlHandlerFilter` strips a trailing slash before routing (the speakers spec requires `/speakers/` to work; Spring 6 stopped matching it). A second filter forces `charset=UTF-8` on error bodies too (Tomcat 11 drops it on the `/error` forward). The mixin keeps Boot 2.7's key order in the entries of a 400's `errors` array. |
 
@@ -55,6 +55,13 @@ transaction, `TalkDao.lock` takes the talk's row lock (`SELECT … FOR UPDATE`, 
 the talk is re-read in a separate statement, checked against the state machine
 (`ConferenceService.allowed`) and written with `TalkDao.updateStatus`. Concurrent decisions on one
 talk wait for each other, so a final status is never overwritten (`AcceptanceTest.concurrent*`).
+
+**Register for a workshop** (`POST /workshops/{id}/registrations`): in one transaction,
+`WorkshopService` checks the talk is a workshop and validates the body before taking any lock. It then
+takes the same row lock with `TalkDao.lock`, re-reads the status in a separate statement, counts the
+registrations, and inserts with `ON CONFLICT (talk_id, email_key) DO NOTHING`. Registrations and
+withdrawals on one workshop wait for each other, so a rush never gets past 20 and nobody gets in after
+a withdrawal (`WorkshopRegistrationTest.aRush*`, `aRegistrationWaitingForTheLockSeesTheWithdrawal`).
 
 **Read a talk**: `TalkDao` loads the row, then `ConferenceService.addRatings` adds `ratingCount` and
 `averageRating` from `RatingDao.stats`, or `RatingDao.statsFor` (one query for the whole list) for lists.
