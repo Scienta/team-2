@@ -31,7 +31,10 @@ and the claim):
    score validation). We have no product owner, so every open question comes to a person with
    options and a recommendation ([`.claude/rules/no-product-owner.md`](.claude/rules/no-product-owner.md)).
 5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
-   tests and Hurl examples, one commit per phase, no broken windows.
+   tests and Hurl examples, one commit per phase, no broken windows. Before the PR,
+   [`workflow/scripts/local-rollout.sh`](workflow/scripts/local-rollout.sh) runs the image we deploy
+   against a Postgres that keeps its data, gates on `/health` showing the SHA and runs the Hurl
+   examples (`.claude/rules/project.md`, "Prod-like Local Run").
 6. **PR in the GitHub UI**, with a risk list from [`/list-risks`](.claude/skills/list-risks/SKILL.md):
    what the harness could see differently from our guesses, and what to watch after the deploy
    (first used on PR #12, acceptance). Merge to `main` deploys; check `/health` shows the new SHA,
@@ -130,7 +133,7 @@ Merging `main` (coverage ratchet, PR #8) into the Boot 4 branch turned up two mo
 | Talks | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–6 OK |
 | Ratings | claimed (base feature) | 0 | Shipped; then verified by `workflow/plans/done/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
 | Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
-| Spring Boot 4 | not yet claimed | TODO(human): tick when claimed | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. TODO(human): after deploy, the plan's post-deploy checklist (harness base checks OK over ≥ 5 ticks) |
+| Spring Boot 4 | claimed | 163 | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. After deploy (`e0a9680`, live ~13:58): base checks OK for ~10 ticks before the claim, `/pre-claim` all items pass, logs clean, 7/7 Hurl files green against our URL. After the claim: spring-boot-4 check-1 and check-2 OK at tick 166, all other claimed checks OK, no bleed |
 | Acceptance | claimed | 148 | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16; `/pre-claim` all 7 items pass (deploy `50ea65c` live, 6/6 Hurl files green against our URL, 18/18 checks of claimed features OK at tick 147). After the claim: acceptance check-1 to check-5 all OK at tick 150, no bleed. No check failed on D5, D6 or D7 (the harness doesn't say which rules its checks exercise) |
 
 ## 4. What the harness caught that we didn't
@@ -198,6 +201,13 @@ current status, not the timeline.
 - **Wire-format net** [`WireFormatTest`](src/test/java/no/scienta/cfp/WireFormatTest.java): asserts
   on raw response strings, so it survives a JSON library swap. It was checked by breaking each
   guarded behaviour with a property (8 of 8 caught).
+- **Prod-like local run** [`workflow/scripts/local-rollout.sh`](workflow/scripts/local-rollout.sh)
+  with the compose `app` profile: the same rollout gate as `.github/fagdag/rollout.sh`, on a laptop,
+  against a database that keeps its data like prod. Works for any service with a Dockerfile and a
+  `/health` that reports its version.
+- **Transcript replay** [`workflow/scripts/transcript-to-hurl.sh`](workflow/scripts/transcript-to-hurl.sh):
+  a harness check's requests as a Hurl file to replay locally, with production's answers as comments.
+  With request logging (`RequestLogFilter`), the harness's traffic shows in the container logs.
 
 ## 6. One thing we'd do differently
 

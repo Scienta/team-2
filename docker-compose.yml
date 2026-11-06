@@ -1,4 +1,11 @@
 # Postgres for running the app locally, matching the defaults in application.properties.
+#
+#   docker compose up -d                              Postgres only, for java -jar target/cfp.jar
+#   docker compose --profile app up -d --build        also the image we deploy, wired up like on Scaleway
+#   workflow/scripts/local-rollout.sh                 the latter with this commit's SHA, then the Hurl examples
+#
+# The data lives in the pgdata volume and survives down/up, like the production database across deploys.
+# docker compose down -v starts from empty. PG_PORT and APP_PORT move the host ports (e.g. for a second worktree).
 services:
   postgres:
     image: postgres:16-alpine
@@ -7,4 +14,34 @@ services:
       POSTGRES_USER: cfp
       POSTGRES_PASSWORD: cfp
     ports:
-      - "5432:5432"
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "cfp", "-d", "cfp"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      args:
+        GIT_SHA: "${GIT_SHA:-unknown}"
+    platform: linux/amd64
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: cfp
+      PGUSER: cfp
+      PGPASSWORD: cfp
+      PGSSLMODE: disable
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
