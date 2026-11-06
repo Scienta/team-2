@@ -4,7 +4,7 @@
 - [x] Phase 2: Withdrawal, `POST /talks/{id}/withdraw` (D6 to D10, D14)
 - [x] Phase 3: Concurrency tests (D15); then offer the push and PR (review M7). Green 3 runs in a row; with the lock removed, all 4 fail (up to 6 conflicting 200s), so they catch races
 - [x] Phase 4: Hurl example `examples/acceptance.hurl`, run against a local service (all 6 example files green)
-- [ ] Phase 5: Update `docs/`, finish (plan to done, claim-log row in `REVIEW.md`)
+- [x] Phase 5: Update `docs/`, finish (plan to done, claim-log row in `REVIEW.md`)
 
 ## Context (read this after a restart)
 
