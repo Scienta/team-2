@@ -1,4 +1,5 @@
-# Workshop registration: our examples (decisions D1 to D18 in workflow/specs/workshop-registration.md).
+# Workshop registration: our examples of the decisions in workflow/specs/workshop-registration.md. Capacity
+# (D9), removing a registration (D16) and concurrency (D17) are in WorkshopRegistrationTest.
 # Run: examples/run.sh [base-url]
 
 # Setup: an accepted workshop, a workshop not accepted, and a talk that isn't a workshop
@@ -7,6 +8,7 @@ POST {{base_url}}/speakers
 HTTP 201
 [Captures]
 speaker: jsonpath "$.id"
+speaker_email: jsonpath "$.email"
 
 POST {{base_url}}/talks
 { "title": "Compilers by hand", "format": "WORKSHOP", "level": "ADVANCED", "speakerId": {{speaker}} }
@@ -45,6 +47,8 @@ HTTP 201
 [Captures]
 ada: jsonpath "$.id"
 [Asserts]
+header "Content-Type" contains "application/json"
+jsonpath "$.id" isInteger
 jsonpath "$.workshopId" == {{workshop}}
 jsonpath "$.name" == "Ada Lovelace"
 jsonpath "$.email" == "ada@example.com"
@@ -66,9 +70,25 @@ HTTP 409
 GET {{base_url}}/workshops/{{workshop}}/registrations
 HTTP 200
 [Asserts]
+header "Content-Type" contains "application/json"
 jsonpath "$" count == 2
 jsonpath "$[0].id" == {{ada}}
 jsonpath "$[1].id" == {{bob}}
+
+# The workshop's own speaker can attend it (D14)
+POST {{base_url}}/workshops/{{workshop}}/registrations
+{ "name": "Grace Hopper", "email": "{{speaker_email}}" }
+HTTP 201
+
+# Bad JSON is 400, even on a talk that doesn't exist (D8). A bad field on a talk that doesn't exist is 404 (D12)
+POST {{base_url}}/workshops/2147483647/registrations
+Content-Type: application/json
+```not json```
+HTTP 400
+
+POST {{base_url}}/workshops/2147483647/registrations
+{ "name": "", "email": "cyd@example.com" }
+HTTP 404
 
 # Both fields are required (D6), and the email must look like one (D7)
 POST {{base_url}}/workshops/{{workshop}}/registrations
@@ -110,4 +130,4 @@ HTTP 409
 GET {{base_url}}/workshops/{{workshop}}/registrations
 HTTP 200
 [Asserts]
-jsonpath "$" count == 2
+jsonpath "$" count == 3

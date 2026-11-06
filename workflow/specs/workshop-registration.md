@@ -64,7 +64,7 @@ behaviour a harness check can see (status codes, idempotency, ordering) before t
 then changed D6, D7 and D17, and Håkon confirmed those too (option a) on each). We follow the same conventions as
 Acceptance: 404 for an unknown id in the path, 400 for invalid input, 409 for a valid request the
 current state doesn't allow. **Open risks**, where the spec doesn't decide: D2, D5, D7, D10, D11. The harness
-checks unclaimed features too, so read those checks after the deploy and before any claim.
+feedback shows no checks for a feature until it is claimed (0/0, timeline 404), so these can only be tested after the claim.
 
 | ID | Question | Our answer | Ask the PO? | Approved by (person, PO answer) |
 |---|---|---|---|---|
@@ -73,7 +73,8 @@ checks unclaimed features too, so read those checks after the deploy and before 
 | D3 | `POST` to a workshop that is `SUBMITTED`, `WAITLISTED` or `REJECTED` | 409, nothing stored | yes | Håkon, 2026-11-06 |
 | D4 | `POST` to a workshop that was accepted and then `WITHDRAWN` | 409, nothing stored; the people already registered stay | yes | Håkon, 2026-11-06 |
 | D5 | `GET` on a workshop that isn't accepted, or is withdrawn | 200 with the list: `[]` if nobody registered, otherwise the people registered before the withdrawal | yes | Håkon, 2026-11-06 |
-| D6 | `name` or `email` missing, null, empty, only whitespace (including a no-break space), not a string, or containing control characters | 400. Stricter than `POST /speakers`, whose typed form would coerce a number to a string | yes | Håkon, 2026-11-06: option a) |
+| D6 | `name` or `email` missing, null, empty, only whitespace (including a no-break space), not a string, or with an ASCII control character inside the trimmed value | 400. Control characters at the edges are trimmed away for the check, and the value is stored as typed (`"Ada
+"` is 201). Stricter than `POST /speakers`, whose typed form would coerce a number to a string | yes | Håkon, 2026-11-06: option a) |
 | D7 | `email` present but not an email | 400 unless it has one `@`, no whitespace, text before the `@`, and a dot with text on both sides after it. So `@example.com`, `a b@c.d` and `ada@localhost` are 400. `Utils.isValidEmail` is too weak (it accepts `@example.com`) and stays as it is. Stricter than `POST /speakers`, which only checks not-blank | yes | Håkon, 2026-11-06: option a) |
 | D8 | Malformed JSON, empty body, a JSON array, or a non-integer id in the path; `Content-Type: text/plain` | 400 from Spring's binding, before the talk is looked up; 415 for `text/plain`, as ratings and Acceptance | yes | Håkon, 2026-11-06 |
 | D9 | `POST` when the workshop already has 20 registrations | 409, nothing stored | yes | Håkon, 2026-11-06 |

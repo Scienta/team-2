@@ -11,9 +11,7 @@ import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -59,8 +57,10 @@ class WorkshopRegistrationTest {
         long workshop = acceptedWorkshop();
         HttpResponse<String> res = register(workshop, "Ada Lovelace", "ada@example.com");
         assertEquals(201, res.statusCode(), res.body());
+        assertJson(res);
         JsonNode body = JSON.readTree(res.body());
-        assertTrue(body.get("id").asLong() > 0, res.body());
+        assertTrue(body.get("id").isIntegralNumber() && body.get("id").asLong() > 0, res.body());
+        assertTrue(body.get("workshopId").isIntegralNumber(), res.body());
         assertEquals(workshop, body.get("workshopId").asLong());
         assertEquals("Ada Lovelace", body.get("name").asText());
         assertEquals("ada@example.com", body.get("email").asText());
@@ -74,6 +74,7 @@ class WorkshopRegistrationTest {
         long second = idOf(register(workshop, "Bob", "bob@example.com"));
         long third = idOf(register(workshop, "Cyd", "cyd@example.com"));
 
+        assertJson(get(workshop));
         JsonNode list = list(workshop);
         assertEquals(3, list.size(), list.toString());
         assertEquals(first, list.get(0).get("id").asLong());
@@ -166,10 +167,61 @@ class WorkshopRegistrationTest {
         assertEquals(0, list(workshop).size());
     }
 
+    // D6: control characters count after trimming, so edges are fine and the value is still stored as typed
+    @Test
+    void controlCharactersCountOnlyInsideTheTrimmedValue() throws Exception {
+        long workshop = acceptedWorkshop();
+        assertEquals(400, post(workshop, "{\"name\":\"A\\tda\",\"email\":\"ada@example.com\"}").statusCode(), "inside the name");
+        assertEquals(400, post(workshop, "{\"name\":\"Ada\",\"email\":\"a\\tda@example.com\"}").statusCode(), "inside the email");
+
+        HttpResponse<String> res = register(workshop, "Ada\n", "\tada@example.com\n");
+        assertEquals(201, res.statusCode(), res.body());
+        JsonNode stored = list(workshop).get(0);
+        assertEquals("Ada\n", stored.get("name").asText());
+        assertEquals("\tada@example.com\n", stored.get("email").asText());
+    }
+
+    // D13: the request gives no limit
+    @Test
+    void longNameAndEmailAreAccepted() throws Exception {
+        long workshop = acceptedWorkshop();
+        String name = "N".repeat(10_000);
+        String email = "e".repeat(10_000) + "@example.com";
+        HttpResponse<String> res = register(workshop, name, email);
+        assertEquals(201, res.statusCode(), res.body());
+        assertEquals(name, list(workshop).get(0).get("name").asText());
+        assertEquals(email, list(workshop).get(0).get("email").asText());
+    }
+
+    // D14: a speaker on the workshop can attend it, and an attendee doesn't have to be a speaker
+    @Test
+    void attendeesAreIndependentOfSpeakers() throws Exception {
+        String speakerEmail = "grace-" + UUID.randomUUID() + "@example.com";
+        long speaker = idOf(send("POST", "/speakers",
+                "{\"name\":\"Grace Hopper\",\"email\":\"" + speakerEmail + "\"}", "application/json"));
+        long workshop = newTalk(speaker, "WORKSHOP");
+        setStatus(workshop, "ACCEPTED");
+
+        assertEquals(201, register(workshop, "Grace Hopper", speakerEmail).statusCode(), "the workshop's own speaker");
+        assertEquals(201, register(workshop, "Not A Speaker", "not-a-speaker-" + UUID.randomUUID() + "@example.com").statusCode());
+        assertEquals(2, list(workshop).size());
+    }
+
+    // D16: the API has no way to remove a registration, so a seat stays taken
+    @Test
+    void aRegistrationCantBeRemoved() throws Exception {
+        long workshop = acceptedWorkshop();
+        long id = idOf(register(workshop, "Ada", "ada@example.com"));
+        String path = "/workshops/" + workshop + "/registrations";
+        assertEquals(405, send("DELETE", path, null, "application/json").statusCode());
+        assertEquals(404, send("DELETE", path + "/" + id, null, "application/json").statusCode());
+        assertEquals(1, list(workshop).size());
+    }
+
     @Test
     void malformedEmailIs400() throws Exception {
         long workshop = acceptedWorkshop();
-        for (String email : new String[] {"not-an-email", "@example.com", "ada@example.", "@.", "a b@c.d", "a@b@c.d", "ada@localhost"}) {
+        for (String email : new String[] {"not-an-email", "@example.com", "ada@example.", "ada@.com", "@.", "a b@c.d", "a@b@c.d", "ada@localhost"}) {
             assertEquals(400, register(workshop, "Ada", email).statusCode(), email);
         }
         assertEquals(0, list(workshop).size());
@@ -242,11 +294,12 @@ class WorkshopRegistrationTest {
         assertEquals(40, countStatus(responses, 409));
         JsonNode list = list(workshop);
         assertEquals(20, list.size(), list.toString());
-        Set<Long> ids = new HashSet<>();
+        long previous = 0;
         for (JsonNode registration : list) {
-            ids.add(registration.get("id").asLong());
+            long id = registration.get("id").asLong();
+            assertTrue(id > previous, "D15: ascending ids, also after a rush: " + list);
+            previous = id;
         }
-        assertEquals(20, ids.size());
     }
 
     @Test
@@ -315,6 +368,11 @@ class WorkshopRegistrationTest {
 
     private static long countStatus(List<HttpResponse<String>> responses, int status) {
         return responses.stream().filter(r -> r.statusCode() == status).count();
+    }
+
+    private static void assertJson(HttpResponse<String> res) {
+        String contentType = res.headers().firstValue("Content-Type").orElse("");
+        assertTrue(contentType.startsWith("application/json"), contentType);
     }
 
     private long acceptedWorkshop() throws Exception {
