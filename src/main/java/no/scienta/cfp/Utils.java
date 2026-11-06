@@ -61,7 +61,7 @@ public class Utils {
      * "4. nov. 2026" for the committee spreadsheet.
      */
     public static String norwegianDate(Date d) {
-        DateFormat f = DateFormat.getDateInstance(DateFormat.MEDIUM, new Locale("nb", "NO"));
+        DateFormat f = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.of("nb", "NO"));
         f.setTimeZone(TimeZone.getTimeZone("Europe/Oslo"));
         return f.format(d);
     }

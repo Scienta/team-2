@@ -2,7 +2,7 @@
 
 - [x] Phase 0: Prerequisites: JDK 25 installed (`/opt/homebrew/opt/openjdk@25`), `jq`, Hurl, `LOCAL.md`
 - [x] Phase 1: Pin today's wire behaviour on Java 11 / Boot 2.7 (`WireFormatTest`, `snapshot-api.sh`, baseline)
-- [ ] Phase 2: Java 25 + Spring Boot 3.5.x, tests and snapshot diff green
+- [x] Phase 2: Java 25 + Spring Boot 3.5.x, tests and snapshot diff green
 - [ ] Phase 3: Spring Boot 4.1.2, tests and snapshot diff green; `AGENTS.md` team note
 - [ ] Phase 4: Dockerfile and CI on Java 25; container run locally, snapshot diff, Hurl example
 - [ ] Phase 5: Docs, rules, ADR, `REVIEW.md`; plan to done; hand over the production checklist
@@ -17,7 +17,7 @@
 - Co-speakers is claimed too (tick 68); its behaviour must also survive (`CoSpeakersTest`).
 - Branch: `spring-boot-4`. PR via the GitHub UI, never `gh`. Merging to `main` deploys; if
   `/health` doesn't come up with the new SHA in 60 s the rollout puts the old image back.
-- Phase 1 commit SHA (the baseline for "assertions unchanged"): `<fill in after Phase 1>`.
+- Phase 1 commit SHA (the baseline for "assertions unchanged"): `b2e8528`.
 - Commands: `./mvnw package`, `./mvnw test -Dtest=<Test>`; machine settings in `LOCAL.md`
   (`JAVA_HOME` lines for JDK 11 and JDK 25, Colima `DOCKER_HOST`). Phase 1 runs on JDK 11,
   everything after on JDK 25.

@@ -70,6 +70,11 @@ was written:
 - The before/after snapshot would have collided on the unique e-mail index, so its diff could
   never come out empty.
 
+During the upgrade itself, `WireFormatTest` (written first, on Boot 2.7) caught that Spring 6
+reorders the keys in each entry of a 400's `errors` array (`objectName`, `field` and
+`rejectedValue` moved to the front). Without the net this would have reached the deployed service
+unnoticed. `FieldErrorMixin` restores the old order.
+
 ## 3. Claim log
 
 | Feature | Claimed or skipped | Tick | Evidence before claiming |
