@@ -1,3 +1,8 @@
+---
+name: execute-plan
+description: Execute the next unchecked phases of a plan, test-gated, one commit per phase.
+---
+
 
 # Executing according to a plan
 
@@ -14,6 +19,8 @@ the optimal implementation sequence.
 
 When executing a plan, do as follows:
 
+0. `docker info`; if Docker isn't running, stop and tell the human. Read `LOCAL.md` if it
+   exists (machine-specific build settings).
 1. Identify the first non-checked item in the checklist
 2. Follow the recipe in the plan for that item
 3. When completed, add at least one test for the new function
@@ -38,8 +45,8 @@ When executing a plan, do as follows:
 When the plan is completed, all boxes checked off, and no tests are failing,
 do as follows:
 
-1. See if there are any remaining, required updates to ADRs in `adrs`,
+1. See if there are any remaining, required updates to ADRs in `workflow/adrs`,
    if any architecture driving decisions have been made through the work.
-2. Move the plan from `todo` to `done`
+2. Move the plan (and its review) from `workflow/plans/todo/` to `workflow/plans/done/` with `git mv`
 3. Commit the final changes to git
 4. Ask the human whether to push to the remote. Remember that merging to `main` deploys.
