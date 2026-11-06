@@ -51,9 +51,8 @@ Before a PR that changes HTTP behaviour, run the image we deploy, not just `java
 
 The harness's checks are opaque, so `examples/<slug>-rules.hurl` is our own version of them: one file
 per feature, every rule in `workflow/specs/<slug>.md` and every decision row, with the status codes from
-`docs/api.md`, except rules the service doesn't meet yet (speakers' "real name and real email": #33).
-Concurrency rules are in the Java tests, not Hurl. CI runs every `examples/*.hurl` against the built image (job `hurl` in
-`.github/workflows/deploy.yml`) on each PR and on main, twice on the same database with a restart in
+`docs/api.md`. Concurrency rules are in the Java tests, not Hurl. CI runs every `examples/*.hurl`
+against the built image (job `hurl` in `.github/workflows/deploy.yml`) on each PR and on main, twice on the same database with a restart in
 between. It doesn't gate the deploy (Julian, 2026-11-06): what matters is that it runs locally.
 Adding a check:
 

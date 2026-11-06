@@ -25,11 +25,14 @@ has an `errors` array between `message` and `path`.
 | Rule | Error |
 |---|---|
 | `name`, `email` not blank | 400 (bean validation) |
+| `name`, `email` JSON strings (`5` or `true` isn't coerced) | 400 (JSON parse error) |
+| `name` not only whitespace, a no-break space included | 400 `name is required` |
+| `email` well formed: one `@`, no whitespace, text before the `@`, a dot with text on both sides after it; spaces at the edges are ignored for the check | 400 `invalid email` |
 | `bio` optional, at most 500 characters | 400 |
 | `email` unique, case-insensitive | 409 `email already registered` |
 
-Response: `{"id", "name", "email", "bio"}` (`bio` is `null` when omitted). Note that the e-mail
-format is **not** checked here.
+Response: `{"id", "name", "email", "bio"}` (`bio` is `null` when omitted); the e-mail as typed.
+Decisions: `workflow/specs/speakers.md` D1–D5.
 
 ### `GET /speakers/{id}` → 200
 
@@ -38,8 +41,9 @@ format is **not** checked here.
 ### `PUT /speakers/{id}` → 200
 
 Body `{"name", "email", "bio"}`, all three replaced. Undocumented ("admin UI"). Rules: 404 if the
-speaker doesn't exist; `name` required (400); e-mail must contain `@` followed by a `.` (400); `bio`
-at most 1000 characters (400); new e-mail taken by another speaker (409).
+speaker doesn't exist; `name`, `email` and `bio` must be strings or absent (400 `<field> must be a
+string`); then the same `name` and `email` rules as `POST` (400, D5); `bio` at most 1000 characters
+(400); new e-mail taken by another speaker (409).
 
 ### `GET /speakers/{id}/talks` → 200
 

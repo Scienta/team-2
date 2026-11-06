@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/speakers")
@@ -39,8 +40,17 @@ public class SpeakerController {
 
     // used by the admin UI to fix typos
     @PutMapping("/{id}")
-    public Map<String, Object> update(@PathVariable("id") Long id, @RequestBody Map<String, String> body) {
-        return service.updateSpeaker(id, body.get("name"), body.get("email"), body.get("bio"));
+    public Map<String, Object> update(@PathVariable("id") Long id, @RequestBody Map<String, Object> body) {
+        return service.updateSpeaker(id, text(body, "name"), text(body, "email"), text(body, "bio"));
+    }
+
+    // A number or boolean is a 400, not coerced to text as Map<String, String> did (speakers spec D2)
+    private static String text(Map<String, Object> body, String field) {
+        Object value = body.get(field);
+        if (value != null && !(value instanceof String)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, field + " must be a string");
+        }
+        return (String) value;
     }
 
     @GetMapping("/{id}/talks")
