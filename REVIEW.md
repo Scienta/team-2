@@ -59,6 +59,17 @@ the talks spec allows three. The plan review caught it before execution; the tes
 on a 409 before testing any ranking. The review of the reorg plan also caught that a per-line
 HTML-comment check would have reported an empty claim-log section as filled.
 
+The `plan-reviewer` agent's review of the Spring Boot 4 plan
+(`workflow/plans/todo/spring-boot-4_plan_review.md`) caught three blocking problems before any code
+was written:
+- The plan only tested the trailing slash on `/talks/{id}/` and treated keeping it as a question
+  for the PO. `speakers.md:20` requires it, `POST /speakers/` included. Spring 6 drops it, so the
+  upgrade would have broken a claimed feature.
+- The plan promised identical error bodies, which can't hold: Spring 6 and Jackson 3 reword their
+  own messages, and we send them to users with `include-message=always`.
+- The before/after snapshot would have collided on the unique e-mail index, so its diff could
+  never come out empty.
+
 ## 3. Claim log
 
 | Feature | Claimed or skipped | Tick | Evidence before claiming |
