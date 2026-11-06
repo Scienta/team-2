@@ -47,7 +47,8 @@ jobs:
   # (our spec-based checks). Twice, with a restart in between: the files must re-run on old data,
   # like the harness's checks do against production. Doesn't gate deploy (see the ci-clean-build plan).
   hurl:
-    runs-on: ubuntu-latest
+    # Pinned: Hurl's .deb depends on libxml2, which ubuntu-latest no longer offers under that name.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       HURL_VERSION: "8.1.0"
