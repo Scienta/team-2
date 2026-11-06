@@ -179,7 +179,7 @@ Merging `main` (coverage ratchet, PR #8) into the Boot 4 branch turned up two mo
 | Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
 | Spring Boot 4 | claimed | 163 | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. After deploy (`e0a9680`, live ~13:58): base checks OK for ~10 ticks before the claim, `/pre-claim` all items pass, logs clean, 7/7 Hurl files green against our URL. After the claim: spring-boot-4 check-1 and check-2 OK at tick 166, all other claimed checks OK, no bleed |
 | Acceptance | claimed | 148 | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16; `/pre-claim` all 7 items pass (deploy `50ea65c` live, 6/6 Hurl files green against our URL, 18/18 checks of claimed features OK at tick 147). After the claim: acceptance check-1 to check-5 all OK at tick 150, no bleed. No check failed on D5, D6 or D7 (the harness doesn't say which rules its checks exercise) |
-| Workshop registration | claimed | 205 | `WorkshopRegistrationTest` (24 tests: a rush of 60 gives exactly 20 registrations, a registration waiting for the lock sees a withdrawal; the lock tests go red with the lock removed), `examples/workshop-registration.hurl` against a local service, `workflow/plans/done/workshop_registration_plan.md`. Deployed as `42ac64e` (`/health`), `examples/run.sh` against our URL 8 of 8 files with Hurl 8.1.0. The harness shows no checks for it until claimed. After the claim: check-1, check-3 and check-4 OK; check-2 FAULTY on ticks 206–218 (decision D2, see §4). Fixes #38 (deployed 15:03, the harness accepted the new `POST` answer at tick 217) and #42 (deployed 15:12); the harness stopped ticking at 218 (15:06) before it could check #42 |
+| Workshop registration | claimed, as a deliberate exception to pre-claim item 6 (Håkon's decision): `/pre-claim` passed every other item but said "claim: no", since the harness shows no checks before a claim | 205 | `WorkshopRegistrationTest` (24 tests: a rush of 60 gives exactly 20 registrations, a registration waiting for the lock sees a withdrawal; the lock tests go red with the lock removed), `examples/workshop-registration.hurl` against a local service, `workflow/plans/done/workshop_registration_plan.md`. Deployed as `42ac64e`, then `fff633d` with the fix for D13 (§2). With that fix live (`/health` showed `3d4c538`), `examples/run.sh` against our URL gave 8 of 8 files with Hurl 8.1.0. The harness shows no checks for it until claimed. After the claim: check-1, check-3 and check-4 OK; check-2 FAULTY on ticks 206–218 (decision D2, see §4). Fixes #38 (deployed 15:03, the harness accepted the new `POST` answer at tick 217) and #42 (deployed 15:12); the harness stopped ticking at 218 (15:06) before it could check #42 |
 | Scheduling | not claimed (merged, #32) | – | `ProgrammeTest` (39 tests: D1–D20, 4 concurrency tests × 10 rounds; without the slot lock or the talk lock at least one fails), `SchedulingRulesTest` and `VenueTest` (48 tests), new code 100 % line and branch covered, `examples/scheduling.hurl` (never writes) and `examples/local/scheduling-happy-path.hurl` green twice against a local service, `workflow/plans/done/scheduling_plan.md`. Merged at 15:06 as `9fc6908`, right when the harness stopped ticking (tick 218), so it was never claimed. Deploy, `tests` and `hurl` green, `/health` showed the SHA, `examples/run.sh` against our URL 14/14 green incl. `scheduling.hurl` (never writes to the programme). `/pre-claim` at tick 218: the `spec-checker` agent mapped every rule and D1–D20 to a test, and its three gaps (D1/D14 binding order, D13 end to end, D17 with a co-speaker change) were closed in #45. Decisions approved by Eirik, not by the organisers' PO |
 
 | Ratings change request | not claimed | – | Released at tick 167; issue #39 open at the end |
@@ -221,13 +221,22 @@ current status, not the timeline.
 **Workshop registration, claimed at tick 205, check-2 FAULTY from tick 206.** The transcript's
 failing request: `POST /workshops/{id}/registrations` for an accepted `LIGHTNING_10` talk, which we
 answered 404 "workshop not found" (decision D2: "it isn't a workshop, so that resource doesn't
-exist"). The harness wants something else. Our tests pinned our own guess, and the risk list didn't
-flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4). After that deploy (tick 217) check-2 got past the `POST` and failed on the next request, `GET` on the same talk (404, flagged as a risk in PR #38); second fix: 200 `[]`.
+exist"). The harness wants something else. Our tests pinned our own guess. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4). After that deploy (tick 217) check-2 got past the `POST` and failed on the next request, `GET` on the same talk (404, flagged as a risk in PR #38); second fix: 200 `[]`.
 The check failed on 13 ticks (206–218), about 1 point each. We never saw it go OK: the
 harness stopped ticking at tick 218, before the second fix was deployed. Lesson: our own guess
 (404, "that resource doesn't exist") was reasonable, but the harness treats a talk that isn't a
-workshop like one that isn't accepted. `/list-risks` flagged the `GET` in PR #38 but not the `POST`
-in the first place, because D2 was "approved" and not marked as an open risk.
+workshop like one that isn't accepted.
+
+What made it cost more than it had to:
+- **The risk list never reached the PR.** D2 was listed as an open risk in the spec, and a risk list
+  naming it with its fallback was drafted for PR #34, but that PR was merged with an empty description.
+  Text a person has to paste by hand gets lost. `/list-risks` then flagged the `GET` in PR #38.
+- **We fixed one request at a time.** A check stops at its first failure, so fixing only the `POST` cost
+  a second deploy. The answer was already in the first transcript: for a rejected workshop, the same check
+  got past 409 on `POST` and 200 `[]` on `GET`.
+- **Two people made the same fix at once.** A second branch for the `POST` fix (on issue #24) was finished
+  minutes after #38 merged, and was deleted unused. The issue rule only helps if an incident gets an issue
+  before anyone starts on it.
 
 **The rollout bleed's cause, found late (fix #31).** We saw deploys cost points at tick 121 but
 only investigated at tick ~200. The cause: the new container answered every request, but slowly. The
