@@ -11,7 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class TalkDao {
 
-    private static final String COLUMNS = "id, title, format, duration, level, status, speaker_id, submitted_at";
+    private static final String COLUMNS = "id, title, format, duration, level, status, speaker_id, submitted_at, "
+            + "ARRAY(SELECT c.speaker_id FROM talk_co_speaker c WHERE c.talk_id = talk.id ORDER BY c.id) AS co_speaker_ids";
 
     private final JdbcTemplate jdbc;
 
@@ -27,6 +28,9 @@ public class TalkDao {
         long millis = rs.getLong("submitted_at");
         t.submittedAt = new Date(millis);
         t.submittedOn = Utils.toSqlDate(millis);
+        for (Integer coSpeakerId : (Integer[]) rs.getArray("co_speaker_ids").getArray()) {
+            t.coSpeakerIds.add(coSpeakerId.longValue());
+        }
         return t;
     };
 
@@ -50,6 +54,23 @@ public class TalkDao {
     public boolean exists(long id) {
         Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM talk WHERE id = ?", Integer.class, id);
         return n != null && n > 0;
+    }
+
+    /**
+     * Locks the talk row until the transaction ends. Returns false if there is no such talk. Read the talk in a separate
+     * statement afterwards: a single SELECT ... FOR UPDATE that waited for the lock still uses the snapshot from before
+     * the wait, so its co-speaker list could be stale.
+     */
+    public boolean lock(long id) {
+        return !jdbc.queryForList("SELECT id FROM talk WHERE id = ? FOR UPDATE", id).isEmpty();
+    }
+
+    public void addCoSpeaker(long talkId, long speakerId) {
+        jdbc.update("INSERT INTO talk_co_speaker (talk_id, speaker_id) VALUES (?, ?)", talkId, speakerId);
+    }
+
+    public void removeCoSpeaker(long talkId, long speakerId) {
+        jdbc.update("DELETE FROM talk_co_speaker WHERE talk_id = ? AND speaker_id = ?", talkId, speakerId);
     }
 
     /**

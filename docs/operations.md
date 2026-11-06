@@ -10,7 +10,7 @@ This is the short version.
 ```
 
 Docker must be running: the tests start Postgres with Testcontainers (`TestDatabase`). Test classes:
-`SpeakersTest`, `TalksTest`, `ConferenceServiceTest`, `HealthTest`, `UtilsTest`.
+`SpeakersTest`, `TalksTest`, `CoSpeakersTest`, `ConferenceServiceTest`, `HealthTest`, `UtilsTest`.
 
 ## Run locally
 
