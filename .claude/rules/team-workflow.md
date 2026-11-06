@@ -47,7 +47,8 @@ details.
 ### Running Checks
 
 ```bash
-./mvnw package                      # build and run all tests
+./mvnw package                      # build, run all tests, coverage report and floor
+workflow/coverage/line-coverage.sh  # line coverage vs the floor in pom.xml
 ./mvnw test -Dtest=SomeTest         # run a single test class
 examples/run.sh [base-url]          # Hurl examples against a running service
 ```
@@ -89,6 +90,8 @@ When you make changes to files:
 2. Before finishing, ensure:
    - **NO FAILING TESTS**
    - **NO WARNINGS**
+   - **NO COVERAGE DROP**: line coverage at or above `coverage.line.minimum` in `pom.xml`
+     (the build checks it), and the floor raised if coverage went up
 3. If tests or builds fail, fix them before completing your work
 
 ### Code Quality

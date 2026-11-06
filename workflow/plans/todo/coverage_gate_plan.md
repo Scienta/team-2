@@ -3,7 +3,7 @@
 - [x] Phase 1: JaCoCo in `pom.xml`, coverage report on every `./mvnw package` (no rule yet)
 - [x] Phase 2: Script that prints the line coverage, `workflow/coverage/line-coverage.sh`
 - [x] Phase 3: Ratchet rule, `./mvnw package` fails if line coverage drops below the recorded floor
-- [ ] Phase 4: Put the rule into the workflow (`execute-plan`, `make-plan`, `.claude/rules/`, `workflow/`)
+- [x] Phase 4: Put the rule into the workflow (`execute-plan`, `make-plan`, `.claude/rules/`, `workflow/`)
 - [ ] Phase 5: Prove the rule, record it in `REVIEW.md`, move the plan to `workflow/plans/done/`
 
 ## Context (read this after a restart)
