@@ -5,13 +5,15 @@
    request from the harness (see "Harness API" in `AGENTS.md`).
 2. Check with the ADRs in `adrs` to make sure you have an overview
    over important architectural decisions made so far.
-3. Break down the work into clearly separated phases with
+3. Go through the known issues in `docs/known_issues.md` to make sure there are no
+   blockers that have to be fixed first.
+4. Break down the work into clearly separated phases with
    clear deliverables that can be tested (if applicable)
-4. Find the optimal order of implementation of the tasks,
+5. Find the optimal order of implementation of the tasks,
    minimising the number of reads and writes (keeping the
    token consumption down)
-5. Write the plan into a markdown file in the `todo` folder.
-6. At the top of the file, insert a todo-list with the phases
+6. Write the plan into a markdown file in the `todo` folder.
+7. At the top of the file, insert a todo-list with the phases
    or steps that you have defined, and format the list in terms
    of check-box items.
 

@@ -93,6 +93,8 @@ where it conflicts with the facts above, the facts win.
 - Read skills/making_a_plan.md for planning methodology
 - Read skills/phase_execution.md for execution patterns
 - Read any other markdown files in `skills/*.md`
+- Read all the files `docs/*.md`. Keep extra track on open_issues.md, as these
+  may cause troubles when implementing new features.
 
 IF there is a LOCAL.md file, read that too. This shall contain information
 local to the current developer's preferences.
