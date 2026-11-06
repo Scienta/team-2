@@ -9,7 +9,7 @@ Must-have (secures eligibility, about 30 min):
 Optional tail (as budget allows, in this order):
 - [x] Phase 4: Turn the planning skills into Claude Code skills (`.claude/skills/*/SKILL.md`)
 - [x] Phase 5: Gate scripts in `workflow/scripts/` (REVIEW check, stale-path check, harness client), with a test
-- [ ] Phase 6: Process artifacts: spec and plan templates, pre-claim checklist, skills `spec-from-request` and `pre-claim`
+- [x] Phase 6: Process artifacts: spec and plan templates, pre-claim checklist, skills `spec-from-request` and `pre-claim`
 - [ ] Phase 7: Review agents (`plan-reviewer`, `spec-checker`), `.claude/settings.json`, `workflow/README.md`
 
 Last (after `ratings-verify` is merged):
