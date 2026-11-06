@@ -1,5 +1,7 @@
 package no.scienta.cfp;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,6 +17,9 @@ public class Utils {
     public static final String DB_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
 
     public static final int MAX_TALKS = 5;
+
+    /** From this many ratings on, a talk's average leaves out one highest and one lowest score. */
+    public static final int TRIM_FROM = 5;
 
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
@@ -104,6 +109,19 @@ public class Utils {
      */
     public static double roundRating(double avg) {
         return Math.floor(avg * 10) / 10.0;
+    }
+
+    /**
+     * A talk's average score: every score below {@link #TRIM_FROM} ratings, else without one highest
+     * and one lowest; rounded to 2 decimals half-even on the exact quotient. {@code null} without ratings.
+     */
+    public static Double ratingAverage(long total, int count, int max, int min) {
+        if (count == 0) {
+            return null;
+        }
+        long sum = count >= TRIM_FROM ? total - max - min : total;
+        int n = count >= TRIM_FROM ? count - 2 : count;
+        return BigDecimal.valueOf(sum).divide(BigDecimal.valueOf(n), 2, RoundingMode.HALF_EVEN).doubleValue();
     }
 
     public static String capitalize(String s) {

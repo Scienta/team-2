@@ -1,6 +1,6 @@
 # Plan: Ratings change request (trimmed average, 2 decimals half-even)
 
-- [ ] Phase 1: Pure average function `Utils.ratingAverage` with unit tests
+- [x] Phase 1: Pure average function `Utils.ratingAverage` with unit tests
 - [ ] Phase 2: Wire it into `RatingDao` and `ConferenceService`; update the old 1-decimal tests; new HTTP tests
 - [ ] Phase 3: Hurl: fix the old 1-decimal examples, add `examples/ratings-cr.hurl`, prod-like local run
 - [ ] Phase 4: Update `docs/` and the Ratings spec pointer, finish (plan to done; REVIEW.md rows in the PR description)
