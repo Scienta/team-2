@@ -104,3 +104,63 @@ Depends on acceptance (issue #11, PR #12) for `ACCEPTED`. Programme-export build
 | D18 | A talk that's been taken out | Can be put anywhere again, checked like a new `PUT` | no | |
 | D19 | Concurrency: two `PUT`s into the same room and slot; the same talk into two places at once; two talks with a shared speaker into the same slot in different rooms | One transaction per `PUT`: lock the slot (a row per slot, `SELECT … FOR UPDATE`, so all three rooms of a slot are serialised), then check and write. A primary key on (room, slot) and a unique `talk_id` back it up in the database. The loser gets the 409 it would get if it came second | no (the rule is clear) | |
 | D20 | Does the Talk show where it's scheduled? | No: the Talk schema is unchanged. The programme is only read through `/programme/{room}/{slot}` (and later programme-export) | no | |
+
+## Questions for the team
+
+We have no product owner: a person on the team picks an option per question and records it in the
+"Approved by" column above. Most likely to be checked by the harness first.
+
+**Q1 (D2). `GET /programme/R1/S1` when nothing is scheduled there?**
+- a) 404 (nothing there; as `DELETE` of someone who isn't a co-speaker, which the harness accepted)
+- b) 200 with `{"room": "R1", "slot": "S1", "start": "09:00", "end": "10:00", "talkId": null}`
+- Recommendation: **a)**. The API's Entry always has a talk, and a) matches our 404 convention.
+  Fallback b) if a check fails on it.
+
+**Q2 (D8). `PUT` the same talk into the room and slot it's already in?**
+- a) 200 with the Entry, nothing changes (PUT is idempotent; as adding a co-speaker twice)
+- b) 409 ("a talk is on the programme only once")
+- Recommendation: **a)**. A retried `PUT` shouldn't fail, and the rule's point (only once) still
+  holds. Fallback b).
+
+**Q3 (D12). What does a successful `DELETE /programme/{room}/{slot}` return?**
+- a) 204, no body (the API gives no response content for `delete`, unlike `put` and `get`)
+- b) 200 with the Entry that was removed (as `DELETE` co-speaker returns the Talk)
+- c) 200 with no body
+- Recommendation: **a)**. The API lists responses for `put` and `get` but none for `delete`, which
+  reads as "no content". Fallback b).
+
+**Q4 (D5, D7, D9, D10). The rule breaks: talk not accepted, room and slot taken, talk already
+elsewhere, a speaker in two rooms at once?**
+- a) 409 for all four, nothing changes (state doesn't allow it; as the 3-talk limit)
+- b) 400 for all four
+- c) 422 for all four
+- Recommendation: **a)**. The input is valid; it's the current programme or talk that says no. It's
+  the convention the harness accepted for the 3-talk limit and co-speakers.
+
+**Q5 (D6). A `WORKSHOP` in a slot other than `S4`?**
+- a) 409, like the other rule breaks (Q4)
+- b) 400: the request contradicts itself (as "main speaker as co-speaker", which the harness
+  wanted as 400)
+- Recommendation: **a)**. Whether a talk fits depends on the talk as it is now, not on the request
+  alone, and keeping all rule breaks on 409 is simpler. Fallback b): it's the closest precedent for
+  400, so it's the first thing to change if a check fails.
+
+**Q6 (D4). `PUT` with a `talkId` that isn't a talk?**
+- a) 400 (an unknown id in the body; as unknown `speakerId` in `POST /talks`, which passes)
+- b) 404 (the talk isn't found)
+- Recommendation: **a)**. The URL (room and slot) exists; only the body is wrong, and a) follows
+  the precedent the harness already accepts. Fallback b).
+
+**Q7 (D1). An unknown room or slot in the path (`R4`, `S6`, `r1`)?**
+- a) 404 (no such room or slot; as an unknown id in the path)
+- b) 400 (not one of the enum values)
+- Recommendation: **a)**. Rooms and slots are things in the URL, like talk ids, and our convention
+  is 404 for those. Fallback b).
+
+**Q8 (D13). Which error wins when several things are wrong?**
+- a) As in D13: path → body → unknown talk → not accepted → workshop slot → already here (200) →
+  elsewhere → taken → speaker clash
+- b) The same, but "taken" before "elsewhere"
+- Recommendation: **a)**. Facts about the talk itself come before facts about the programme, and
+  "already here" has to come before "taken", or a retried `PUT` would get 409 for its own place.
+  The harness is unlikely to combine errors, so this matters little.
