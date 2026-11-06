@@ -18,6 +18,8 @@
         <spring-boot.version>2.7.18</spring-boot.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <jacoco.version>0.8.16</jacoco.version>
+        <!-- Line coverage floor, only ever raised: see workflow/coverage/README.md -->
+        <coverage.line.minimum>0.722</coverage.line.minimum>
     </properties>
 
     <!-- We can't use spring-boot-starter-parent because of the old company parent pom,
@@ -109,6 +111,27 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${coverage.line.minimum}</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
