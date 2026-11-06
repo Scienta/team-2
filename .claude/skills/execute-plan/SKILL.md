@@ -56,4 +56,5 @@ do as follows:
    a draft claim-log row (§3) with the evidence. Then run `workflow/scripts/check-review.sh` and
    include the headings it still lists in your report.
 4. Commit the final changes to git
-5. Ask the human whether to push to the remote. Remember that merging to `main` deploys.
+5. Write the risk list for the PR description with `/list-risks` (`.claude/skills/list-risks/SKILL.md`).
+6. Ask the human whether to push to the remote. Remember that merging to `main` deploys.
