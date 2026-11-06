@@ -18,6 +18,15 @@ feature request on the harness
   → claim-log row in REVIEW.md §3; harness surprises in §4
 ```
 
+**Unattended variant: the spec pipeline** (set up 2026-11-06, issue #35; first supervised run pending).
+`/loop 10m /spec-watch` in a local session: [`scripts/new-specs.sh`](scripts/new-specs.sh) finds
+released, unclaimed specs without a `spec:<slug>` issue, `/spec-watch` opens a `pipeline` issue
+assigned to Daniel, and [`/implement-issue`](../.claude/skills/implement-issue/SKILL.md) runs the
+flow above with the [`issue-implementer`](../.claude/agents/issue-implementer.md) agent, taking the
+recommended option at each decision. It ends in a **draft** PR with the decisions on top: a person
+approves them, marks it ready and merges. State lives in issue labels (`pipeline:running`,
+`pipeline:pr-open`, `blocked`), read by [`scripts/pipeline-queue.sh`](scripts/pipeline-queue.sh).
+
 ## Artifacts
 
 | Path | What it's for |
@@ -32,11 +41,13 @@ feature request on the harness
 | [`scripts/local-rollout.sh`](scripts/local-rollout.sh) | Prod-like run: the deployed image with this SHA, persistent Postgres, `/health` gate, Hurl examples |
 | [`../examples/*-rules.hurl`](../examples/) | Spec-based checks per feature, harness-shaped data, re-runnable on old data; CI job `hurl` runs them against the built image (`.claude/rules/project.md`, "Spec-based Hurl Checks") |
 | [`scripts/transcript-to-hurl.sh`](scripts/transcript-to-hurl.sh) | A harness check's transcript as Hurl, to replay locally; tested by `test-transcript-to-hurl.sh` |
+| [`scripts/new-specs.sh`](scripts/new-specs.sh) | Released, unclaimed harness specs without a `spec:<slug>` issue; tested by `test-new-specs.sh` |
+| [`scripts/pipeline-queue.sh`](scripts/pipeline-queue.sh) | The spec pipeline's issues by state (running, blocked, pr-open, queued); tested by `test-pipeline-queue.sh` |
 | [`coverage/`](coverage/) | JaCoCo line coverage ratchet: the build fails if coverage drops; `line-coverage.sh` prints it |
 | [`./adrs/`](./adrs/) | Architecture decision records |
 | [`../.claude/rules/`](../.claude/rules/) | Team rules: `team-workflow.md`, `project.md` |
-| [`../.claude/skills/`](../.claude/skills/) | `make-plan`, `make-master-plan`, `execute-plan`, `spec-from-request`, `list-risks`, `pre-claim` |
-| [`../.claude/agents/`](../.claude/agents/) | `plan-reviewer`, `spec-checker` |
+| [`../.claude/skills/`](../.claude/skills/) | `make-plan`, `make-master-plan`, `execute-plan`, `spec-from-request`, `list-risks`, `pre-claim`, `spec-watch`, `implement-issue` |
+| [`../.claude/agents/`](../.claude/agents/) | `plan-reviewer`, `spec-checker`, `issue-implementer` |
 | [`../.claude/settings.json`](../.claude/settings.json) | Shared permissions; agents can't read the harness token |
 
 ## A session, step by step

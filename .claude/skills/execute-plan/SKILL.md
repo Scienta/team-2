@@ -58,3 +58,4 @@ do as follows:
 4. Commit the final changes to git
 5. Write the risk list for the PR description with `/list-risks` (`.claude/skills/list-risks/SKILL.md`).
 6. Ask the human whether to push to the remote. Remember that merging to `main` deploys.
+   (Under `/implement-issue` the brief in `.claude/agents/issue-implementer.md` replaces this step.)
