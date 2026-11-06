@@ -60,10 +60,13 @@ answer here is ours until a person has asked the product owner. **Ask the PO** a
 behaviour a harness check can see (status codes, idempotency, ordering) before the claim.
 
 **Approval (2026-11-06):** the team has no product owner to ask, only the harness and the specs, as
-for Acceptance (`workflow/specs/acceptance.md` on `11-acceptance`). Håkon approved every row below. We
-follow the same conventions: 404 for an unknown id in the path, 400 for invalid input, 409 for a
-valid request the current state doesn't allow. **Open risks** to watch first after the claim, where
-the spec doesn't decide: D2, D5, D7, D10, D11.
+for Acceptance (`workflow/specs/acceptance.md`). Håkon approved every row below, except that the plan
+review then changed D6, D7 and D17: those are marked for Håkon to confirm. We follow the same
+conventions: 404 for an unknown id in the path, 400 for invalid input, 409 for a valid request the
+current state doesn't allow. `AGENTS.md` says a person can ask the organisers' product owner about
+business rules, so `workflow/checklists/pre-claim.md` item 1 doesn't pass without answers or a
+recorded exception. **Open risks**, where the spec doesn't decide: D2, D5, D7, D10, D11. The harness
+checks unclaimed features too, so read those checks after the deploy and before any claim.
 
 | ID | Question | Our answer | Ask the PO? | Approved by (person, PO answer) |
 |---|---|---|---|---|
@@ -72,8 +75,8 @@ the spec doesn't decide: D2, D5, D7, D10, D11.
 | D3 | `POST` to a workshop that is `SUBMITTED`, `WAITLISTED` or `REJECTED` | 409, nothing stored | yes | Håkon, 2026-11-06 |
 | D4 | `POST` to a workshop that was accepted and then `WITHDRAWN` | 409, nothing stored; the people already registered stay | yes | Håkon, 2026-11-06 |
 | D5 | `GET` on a workshop that isn't accepted, or is withdrawn | 200 with the list: `[]` if nobody registered, otherwise the people registered before the withdrawal | yes | Håkon, 2026-11-06 |
-| D6 | `name` or `email` missing, null, empty or only whitespace | 400, like `POST /speakers` | yes | Håkon, 2026-11-06 |
-| D7 | `email` present but not an email (`not-an-email`) | 400, using `Utils.isValidEmail`. `POST /speakers` only checks not-blank today, so this is stricter than it | yes | Håkon, 2026-11-06 |
+| D6 | `name` or `email` missing, null, empty, only whitespace (including a no-break space), not a string, or containing control characters | 400. Stricter than `POST /speakers`, whose typed form would coerce a number to a string | yes | Revised after review: Håkon to confirm |
+| D7 | `email` present but not an email | 400 unless it has one `@`, no whitespace, text before the `@`, and a dot with text on both sides after it. So `@example.com`, `a b@c.d` and `ada@localhost` are 400. `Utils.isValidEmail` is too weak (it accepts `@example.com`) and stays as it is. Stricter than `POST /speakers`, which only checks not-blank | yes | Revised after review: Håkon to confirm |
 | D8 | Malformed JSON, empty body, a JSON array, or a non-integer id in the path; `Content-Type: text/plain` | 400 from Spring's binding, before the talk is looked up; 415 for `text/plain`, as ratings and Acceptance | yes | Håkon, 2026-11-06 |
 | D9 | `POST` when the workshop already has 20 registrations | 409, nothing stored | yes | Håkon, 2026-11-06 |
 | D10 | `POST` with an email already registered for this workshop | 409, nothing changes (not an idempotent 200), like `POST /speakers` | yes | Håkon, 2026-11-06 |
@@ -83,5 +86,5 @@ the spec doesn't decide: D2, D5, D7, D10, D11.
 | D14 | Can a speaker on the workshop register as an attendee? Must an attendee be a registered speaker? | Yes, and no: attendees are independent of speakers | yes | Håkon, 2026-11-06 |
 | D15 | Order of `GET` | Registration order, ascending `id`; the row lock in D17 makes `id` order match registration order | no: the rule is explicit | Håkon, 2026-11-06 |
 | D16 | Can a registration be removed, freeing a seat? | No: the API has no such operation, so a seat stays taken | no: the API is explicit | Håkon, 2026-11-06 |
-| D17 | Concurrency ("expect a rush", "never more") | In one short transaction: lock the talk row (`SELECT … FOR UPDATE`), re-read status and count in new statements (see the note in `TalkDao`), then insert. A unique index on the talk id and the normalised email is the backstop, mapped to 409 like D10. Exactly 20 of a rush get 201 | no: internal, but must be tested with a real rush | Håkon, 2026-11-06 |
-| D18 | Dependency on Acceptance | Only `talk.status = 'ACCEPTED'` is read, set by the Acceptance feature. Tests can set it directly until that merges. This feature can't work in production or be claimed before Acceptance is deployed | no | Håkon, 2026-11-06 |
+| D17 | Concurrency ("expect a rush", "never more") | In one short transaction: lock the talk row (`SELECT … FOR UPDATE`), re-read status and count in new statements (see the note in `TalkDao`), then insert with `ON CONFLICT DO NOTHING` on a unique constraint on the talk id and the normalised email; no row back means 409, as D10. Exactly 20 of a rush get 201 | no: internal, but must be tested with a real rush | Revised after review: Håkon to confirm |
+| D18 | Dependency on Acceptance | Only `talk.status = 'ACCEPTED'` is read, set by the Acceptance feature. Acceptance is on `main` at `50ea65c`. This feature can't be claimed before it's deployed too | no | Håkon, 2026-11-06 |
