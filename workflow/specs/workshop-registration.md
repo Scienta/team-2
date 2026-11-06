@@ -59,13 +59,11 @@ The feature request isn't a spec: it doesn't give status codes, edge cases or er
 answer here is ours until a person has asked the product owner. **Ask the PO** about every row whose
 behaviour a harness check can see (status codes, idempotency, ordering) before the claim.
 
-**Approval (2026-11-06):** the team has no product owner to ask, only the harness and the specs, as
-for Acceptance (`workflow/specs/acceptance.md`). Håkon approved every row below, except that the plan
-review then changed D6, D7 and D17: those are marked for Håkon to confirm. We follow the same
-conventions: 404 for an unknown id in the path, 400 for invalid input, 409 for a valid request the
-current state doesn't allow. `AGENTS.md` says a person can ask the organisers' product owner about
-business rules, so `workflow/checklists/pre-claim.md` item 1 doesn't pass without answers or a
-recorded exception. **Open risks**, where the spec doesn't decide: D2, D5, D7, D10, D11. The harness
+**Approval (2026-11-06):** we have no product owner, so a person on the team decides
+(`.claude/rules/no-product-owner.md`). Håkon approved every row below, except that the plan review
+then changed D6, D7 and D17: those are marked for Håkon to confirm. We follow the same conventions as
+Acceptance: 404 for an unknown id in the path, 400 for invalid input, 409 for a valid request the
+current state doesn't allow. **Open risks**, where the spec doesn't decide: D2, D5, D7, D10, D11. The harness
 checks unclaimed features too, so read those checks after the deploy and before any claim.
 
 | ID | Question | Our answer | Ask the PO? | Approved by (person, PO answer) |

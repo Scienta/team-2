@@ -4,7 +4,7 @@
 - [x] Phase 1: Registrations table, `POST` and `GET /workshops/{id}/registrations`, eligibility and validation
 - [x] Phase 2: Capacity, duplicates, a real rush, and the lock test
 - [x] Phase 3: Hurl example in `examples/`
-- [ ] Phase 4: Update `docs/`, raise the coverage floor, finish (draft claim-log row, plan to done)
+- [x] Phase 4: Update `docs/`, raise the coverage floor, finish (draft claim-log row, plan to done)
 
 ## Context (read this after a restart)
 
@@ -36,10 +36,9 @@
 ## Decisions for the human to check
 
 Rows D1 to D18 in the spec are approved by Håkon on 2026-11-06 (D6, D7 and D17 were changed by the plan
-review afterwards, and await confirmation). Håkon says the team has no product owner to ask, as
-Acceptance did. `AGENTS.md` says a person can ask the organisers' product owner about
-business rules. **So pre-claim item 1 doesn't pass.** A person must either get answers, or record an
-explicit exception in `REVIEW.md` §3 when claiming. An agent can't make that call.
+review afterwards, and await confirmation). We have no product owner, so a person on the team decides
+(`.claude/rules/no-product-owner.md`, merged while this plan ran): that person's answers are what
+pre-claim item 1 checks.
 
 Before any claim, deploy and read `workflow/scripts/harness.sh feedback`: unclaimed features are
 checked too. So the risky decisions can be tested before the permanent click:
@@ -194,7 +193,7 @@ Check: `./mvnw package` green, no warnings, no coverage drop. Commit:
 
 | Finding | Response |
 |---|---|
-| B1 no PO | Not ours to settle. "Decisions" states that item 1 doesn't pass; a person gets answers or records an exception |
+| B1 no PO | Settled by `.claude/rules/no-product-owner.md`, merged while this plan ran: a person on the team decides. D6, D7 and D17 changed after approval, so they go back to Håkon with options |
 | S1 re-read untested | Added `aRegistrationWaitingForTheLockSeesTheWithdrawal`, and a by-hand falsification |
 | S2 blocked Phase 3 | Gone: Acceptance merged (`50ea65c`) while the review ran. Plan to done is the last step |
 | S3 nothing committed | Phase 0 |
