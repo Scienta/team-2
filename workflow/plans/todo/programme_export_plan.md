@@ -242,7 +242,7 @@ Check: both `local-rollout.sh` runs end with every Hurl file green. Commit:
 2. Move the approved decisions table into `workflow/specs/programme-export.md` (spec-checker and
    pre-claim read it there).
 3. `/execute-plan` "Before finalising" and "After completing":
-   - update from `main`, and raise the coverage floor if it went up;
+   - update from `main` (the coverage floor is frozen: don't change it, #43);
    - `git mv` the plan and review to `done/`;
    - `REVIEW.md`: §2 for B1/B2 (this review caught them), and a §3 draft row, unticked;
    - `workflow/scripts/check-review.sh`.
