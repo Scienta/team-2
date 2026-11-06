@@ -3,8 +3,8 @@
 - [x] Phase 1: JaCoCo in `pom.xml`, coverage report on every `./mvnw package` (no rule yet)
 - [x] Phase 2: Script that prints the line coverage, `workflow/coverage/line-coverage.sh`
 - [x] Phase 3: Ratchet rule, `./mvnw package` fails if line coverage drops below the recorded floor
-- [ ] Phase 4: Put the rule into the workflow (`phase_execution.md`, `AGENTS.md`, `skills/PROJECT.md`)
-- [ ] Phase 5: Prove the rule, record it in `REVIEW.md`, move the plan to `done/`
+- [ ] Phase 4: Put the rule into the workflow (`execute-plan`, `make-plan`, `.claude/rules/`, `workflow/`)
+- [ ] Phase 5: Prove the rule, record it in `REVIEW.md`, move the plan to `workflow/plans/done/`
 
 ## Context (read this after a restart)
 
@@ -77,12 +77,15 @@ After Phase 1, on `origin/main` 4ee0b38: lines 278/385 (72.2 %). Earlier, at 3b6
 
 ## Phase 4: Workflow
 
-- `skills/phase_execution.md`: step 4 and "Before Finalising the Plan": a coverage drop is a
+- `.claude/skills/execute-plan/SKILL.md`: step 4 and "Before Finalising the Plan": a coverage drop is a
   broken window; fix it with tests. After the plan is done, run `workflow/coverage/line-coverage.sh`
   and raise `coverage.line.minimum` if coverage went up (D3). Never lower it without the human (D6).
-- `skills/making_a_plan.md`: plans include the tests that keep coverage from dropping.
-- `AGENTS.md` (team section, "Running Checks") and `skills/PROJECT.md` (Testing Conventions): the
-  report path, the script, the ratchet.
+- `.claude/skills/make-plan/SKILL.md`: plans include the tests that keep coverage from dropping.
+- `.claude/rules/team-workflow.md` ("Running Checks", "No Broken Windows") and
+  `.claude/rules/project.md` (Testing Conventions): the report path, the script, the ratchet.
+- `AGENTS.md` team section, non-negotiables: the build includes the coverage floor.
+- `workflow/README.md` artifacts table: `coverage/`. `workflow/checklists/pre-claim.md` item 3:
+  the build includes the coverage floor.
 - Commit: `docs: Make the coverage ratchet part of the workflow`.
 
 ## Phase 5: Evidence
@@ -90,4 +93,4 @@ After Phase 1, on `origin/main` 4ee0b38: lines 278/385 (72.2 %). Earlier, at 3b6
 - `./mvnw package` and the script, both green.
 - `REVIEW.md` section 2 (how we reviewed): the ratchet. Section 5 (reusable artifacts): the
   JaCoCo ratchet and the script.
-- Move this plan to `done/`, commit, ask the human about pushing.
+- Move this plan to `workflow/plans/done/` with `git mv`, commit, ask the human about pushing.
