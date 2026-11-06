@@ -2,7 +2,7 @@
 
 - [x] Phase 1: Request logging filter (`RequestLogFilter`) with a test
 - [x] Phase 2: Compose `app` service and a persistent Postgres volume
-- [ ] Phase 3: `workflow/scripts/local-rollout.sh`: build, start, wait for the SHA on `/health`, run the Hurl examples
+- [x] Phase 3: `workflow/scripts/local-rollout.sh`: build, start, wait for the SHA on `/health`, run the Hurl examples
 - [ ] Phase 4: `workflow/scripts/transcript-to-hurl.sh` with its own test script
 - [ ] Phase 5: Docs, `REVIEW.md` §1/§5, plan to done
 
