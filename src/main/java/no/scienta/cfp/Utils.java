@@ -51,7 +51,8 @@ public class Utils {
      * "11/4/26, 1:05 PM", what the reviewer UI shows.
      */
     public static String usShort(Date d) {
-        DateFormat f = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US);
+        // explicit pattern: on JDK 20+ the locale's SHORT style puts U+202F before AM/PM (D2)
+        SimpleDateFormat f = new SimpleDateFormat("M/d/yy, h:mm a", Locale.US);
         f.setTimeZone(UTC);
         return f.format(d);
     }

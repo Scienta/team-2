@@ -2,7 +2,7 @@
 
 Found by reading the code on 2026-11-06. **These haven't been checked against the base specs yet.**
 Some may be intended behaviour. Check the spec before changing anything, and record the decision
-here.
+here. Ratings entries were checked on 2026-11-06 (`todo/ratings_plan.md`); see "Decisions" below.
 
 ## Security
 
@@ -46,3 +46,16 @@ here.
 | # | Issue |
 |---|---|
 | O1 | No request logging, so the harness's traffic is invisible in the container logs |
+
+## Decisions
+
+| # | Checked against | Decision |
+|---|---|---|
+| R6 | Ratings spec | Kept, out of scope. The spec's rounding rule is about a talk's average; `/admin/stats` is a mean of talk means and isn't in any base spec. The CSV uses the talk's own (half-up) value. |
+| R7 | Ratings spec (silent) | Kept: `GET /talks?speakerId=<unknown>` gives `[]`, since it's a filter. Pinned by `RatingsTest.filterAndSort`. |
+| R8 | Ratings spec (silent) | **Fixed** as a chosen policy (E1, approved by Daniel Bakkelund, 2026-11-06): a missing talk gives 404 before the score is validated. `reviewerId` and body-binding errors still give 400 first. Pinned by `RatingsTest.errorPrecedence`. |
+| D2 | Ratings spec ("exactly one ordinary space") | **Fixed.** The bug was real on JDK 21 locally (U+202F before AM/PM); prod on JDK 11 was unaffected. `Utils.usShort` now uses the explicit pattern `M/d/yy, h:mm a`. Guarded by `UtilsTest.usShortUsesAnOrdinarySpaceBeforeAmPm`. |
+| D3 | Ratings spec | No action for ratings: no endpoint deletes talks, so `rate`'s exists-check then upsert can't leave orphans. Revisit if a drip feature deletes talks. |
+| P1 | Ratings spec | Out of scope for the ratings plan; the list part was fixed separately (PR #5, `RatingDao.statsFor`). |
+
+Phase 2 of the ratings plan (`RatingsTest`, 14 tests including concurrency) found no other bugs.

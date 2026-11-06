@@ -319,6 +319,9 @@ public class ConferenceService {
         if (reviewerId < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "reviewerId must be positive");
         }
+        if (!talkDao.exists(talkId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "talk not found");
+        }
         Object score = body.get("score");
         if (!(score instanceof Integer)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "score must be a whole number");
@@ -326,9 +329,6 @@ public class ConferenceService {
         int s = (Integer) score;
         if (s < 1 || s > 5) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "score must be 1-5");
-        }
-        if (!talkDao.exists(talkId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "talk not found");
         }
         String now = Utils.now();
         ratingDao.save(talkId, reviewerId, s, now);

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -39,6 +40,25 @@ class UtilsTest {
         assertEquals(4.2, Utils.roundRating(4.25));
         assertEquals(3.6, Utils.roundRating(3.6666));
         assertEquals(4.5, Utils.roundRating(4.5));
+    }
+
+    @Test
+    void usShortIsTheReviewerUiFormatInUtc() {
+        assertEquals("11/4/26, 1:05 PM", usShort("2026-11-04T13:05:00Z"));
+        assertEquals("11/4/26, 12:00 AM", usShort("2026-11-04T00:00:00Z"));
+        assertEquals("11/4/26, 12:00 PM", usShort("2026-11-04T12:00:00Z"));
+        assertEquals("1/9/26, 9:07 AM", usShort("2026-01-09T09:07:00Z"));
+    }
+
+    // D2: newer JDKs put U+202F before AM/PM; the spec wants one ordinary space
+    @Test
+    void usShortUsesAnOrdinarySpaceBeforeAmPm() {
+        String s = usShort("2026-11-04T13:05:00Z");
+        assertEquals(' ', s.charAt(s.length() - 3));
+    }
+
+    private static String usShort(String instant) {
+        return Utils.usShort(Date.from(Instant.parse(instant)));
     }
 
     @Disabled("flaky on Jenkins")
