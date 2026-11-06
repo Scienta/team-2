@@ -10,11 +10,10 @@
 
 - Spec: `workflow/specs/workshop-registration.md` (decisions D1 to D18 at the end). Claimed? No. A
   person claims, a claim is permanent.
-- Branch: `workshop-registration`, on top of `main` at `50ea65c`, which has Acceptance.
+- Branch: `24-workshop-registration`, issue #24.
 - **Issue:** `.claude/rules/issues.md` wants one issue per task, a branch `<issue-number>-<short-name>`
   and `Closes #<n>` in the PR. `gh` isn't installed on this machine, so a person checks the open issues
-  and creates this one in the GitHub UI. Issue number: `TODO(human)`. **Before the first push:**
-  `git branch -m workshop-registration <n>-workshop-registration`, and update this line.
+  and created this one in the GitHub UI: #24.
 - PR via the GitHub UI, never `gh`. Merging to `main` deploys, and a rollout has cost points each time
   (`REVIEW.md` §4), so this is one PR.
 - Commands: `./mvnw package`, `./mvnw test -Dtest=WorkshopRegistrationTest`,
