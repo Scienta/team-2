@@ -102,14 +102,14 @@ descending, then `id` ascending; unrated talks last, by `id`. Any other `sort` v
 ### `PUT /talks/{id}/co-speakers/{speakerId}` → 200
 
 No body. Returns the talk object. Checks, in this order: talk exists (404); speaker exists (404); not
-the talk's main speaker (409); already a co-speaker gives 200 with nothing changed, also on a full
+the talk's main speaker (400); already a co-speaker gives 200 with nothing changed, also on a full
 talk; fewer than 2 co-speakers (409). Co-speaking doesn't count towards the limit of 3 talks, and
 talk lists by speaker show only the talks where they are the main speaker.
 
 ### `DELETE /talks/{id}/co-speakers/{speakerId}` → 200
 
-Returns the talk object. Talk exists (404); speaker exists (404). A registered speaker who isn't a
-co-speaker gives 200 with nothing changed. Someone removed and added again goes last.
+Returns the talk object. Talk exists (404); speaker exists (404); is a co-speaker of this talk (404).
+Someone removed and added again goes last.
 
 ## Ratings
 
