@@ -173,9 +173,7 @@ public class ConferenceService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "speaker not found");
         }
         List<TalkDto> talks = talkDao.findBySpeaker(speakerId);
-        for (TalkDto t : talks) {
-            addRatings(t);
-        }
+        addRatings(talks);
         return talks;
     }
 
@@ -184,9 +182,7 @@ public class ConferenceService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sort must be 'rating'");
         }
         List<TalkDto> talks = speakerId == null ? talkDao.findAll() : talkDao.findBySpeaker(speakerId);
-        for (TalkDto t : talks) {
-            addRatings(t);
-        }
+        addRatings(talks);
         if ("rating".equals(sort)) {
             List<TalkDto> rated = new ArrayList<>();
             List<TalkDto> unrated = new ArrayList<>();
@@ -214,8 +210,24 @@ public class ConferenceService {
         return talks;
     }
 
+    private void addRatings(List<TalkDto> talks) {
+        List<Long> ids = new ArrayList<>();
+        for (TalkDto t : talks) {
+            ids.add(t.id);
+        }
+        Map<Long, Map<String, Object>> stats = ratingDao.statsFor(ids);
+        for (TalkDto t : talks) {
+            if (stats.containsKey(t.id)) {
+                applyRatings(t, stats.get(t.id));
+            }
+        }
+    }
+
     private void addRatings(TalkDto talk) {
-        Map<String, Object> stats = ratingDao.stats(talk.id);
+        applyRatings(talk, ratingDao.stats(talk.id));
+    }
+
+    private void applyRatings(TalkDto talk, Map<String, Object> stats) {
         int count = ((Number) stats.get("cnt")).intValue();
         long total = ((Number) stats.get("total")).longValue();
         talk.ratingCount = count;

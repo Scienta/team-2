@@ -39,7 +39,7 @@ here. Ratings entries were checked on 2026-11-06 (`todo/ratings_plan.md`); see "
 
 | # | Issue | Where |
 |---|---|---|
-| P1 | N+1 queries: one rating query per talk in every list, plus one speaker query per talk in stats and CSV | `ConferenceService.addRatings`, `statistics`, `ReportController` |
+| P1 | N+1 queries: one speaker query per talk in stats and CSV. Fixed for ratings: lists now use one query (`RatingDao.statsFor`) | `ConferenceService.statistics`, `ReportController` |
 
 ## Observability
 
@@ -56,6 +56,6 @@ here. Ratings entries were checked on 2026-11-06 (`todo/ratings_plan.md`); see "
 | R8 | Ratings spec (silent) | **Fixed** as a chosen policy (E1, approved by Daniel Bakkelund, 2026-11-06): a missing talk gives 404 before the score is validated. `reviewerId` and body-binding errors still give 400 first. Pinned by `RatingsTest.errorPrecedence`. |
 | D2 | Ratings spec ("exactly one ordinary space") | **Fixed.** The bug was real on JDK 21 locally (U+202F before AM/PM); prod on JDK 11 was unaffected. `Utils.usShort` now uses the explicit pattern `M/d/yy, h:mm a`. Guarded by `UtilsTest.usShortUsesAnOrdinarySpaceBeforeAmPm`. |
 | D3 | Ratings spec | No action for ratings: no endpoint deletes talks, so `rate`'s exists-check then upsert can't leave orphans. Revisit if a drip feature deletes talks. |
-| P1 | Ratings spec | Deferred: "reviewing is busy" is about correctness, not latency. Revisit if the harness shows slow or 503 lists. |
+| P1 | Ratings spec | Out of scope for the ratings plan; the list part was fixed separately (PR #5, `RatingDao.statsFor`). |
 
 Phase 2 of the ratings plan (`RatingsTest`, 14 tests including concurrency) found no other bugs.
