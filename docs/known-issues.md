@@ -2,7 +2,7 @@
 
 Found by reading the code on 2026-11-06. **These haven't been checked against the base specs yet.**
 Some may be intended behaviour. Check the spec before changing anything, and record the decision
-here. Ratings entries were checked on 2026-11-06 (`todo/ratings_plan.md`); see "Decisions" below.
+here. Ratings entries were checked on 2026-11-06 (`workflow/plans/done/ratings_plan.md`); see "Decisions" below.
 
 ## Security
 

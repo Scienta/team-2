@@ -2,7 +2,7 @@
 
 **Every agent must read all of `.claude/rules/*.md` before doing anything else.** Claude Code loads
 them automatically; other agents read them explicitly. Skills are in `.claude/skills/`, plans in
-`todo/` (moving to `workflow/plans/`), the process in `workflow/README.md`.
+`workflow/plans/` (`workflow/plans/todo/`, `workflow/plans/done/`), the process in `workflow/README.md`.
 
 The organisers' facts in `AGENTS.md` (deploy contract, commands, platform gotchas, hands off) are
 binding. What follows is how this team works; where it conflicts with those facts, the facts win.

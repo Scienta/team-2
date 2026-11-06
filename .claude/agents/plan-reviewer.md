@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Review a plan in todo/ (workflow/plans/todo/ after the reorg) before it's executed. Read-only; returns findings for <feature>_plan_review.md.
+description: Review a plan in workflow/plans/todo/ before it's executed. Read-only; returns findings for <feature>_plan_review.md.
 tools: Read, Grep, Glob
 ---
 

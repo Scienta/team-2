@@ -47,6 +47,6 @@ do as follows:
 
 1. See if there are any remaining, required updates to ADRs in `workflow/adrs`,
    if any architecture driving decisions have been made through the work.
-2. Move the plan from `todo` to `done`
+2. Move the plan (and its review) from `workflow/plans/todo/` to `workflow/plans/done/` with `git mv`
 3. Commit the final changes to git
 4. Ask the human whether to push to the remote. Remember that merging to `main` deploys.

@@ -22,11 +22,11 @@ and the claim):
 2. **Plan.** An agent writes a phased, restart-proof plan with the
    [`/make-plan`](.claude/skills/make-plan/SKILL.md) skill: a checklist on top, a "read this
    after a restart" context block, the decisions for a human (flagging those to ask the product
-   owner), and a falsifiable "Check:" per phase. Plans live in `todo/` (moving to
-   `workflow/plans/`).
+   owner), and a falsifiable "Check:" per phase. Plans live in
+   [`workflow/plans/`](workflow/plans/).
 3. **Review the plan.** A second agent, often a different tool, reviews the plan and writes
    `<feature>_plan_review.md` next to it; the first agent revises. Examples:
-   `todo/ratings_plan_review.md`, `todo/workflow_reorg_plan_review.md`.
+   `workflow/plans/done/ratings_plan_review.md`, `workflow/plans/done/workflow_reorg_plan_review.md`.
 4. **Human approves the decisions** (e.g. E1 in the ratings plan: a missing talk gives 404 before
    score validation).
 5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
@@ -61,8 +61,8 @@ HTML-comment check would have reported an empty claim-log section as filled.
 |---|---|---|---|
 | Speakers | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–4 OK |
 | Talks | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–6 OK |
-| Ratings | claimed (base feature) | 0 | Shipped; then verified by `todo/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
-| Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
+| Ratings | claimed (base feature) | 0 | Shipped; then verified by `workflow/plans/done/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
+| Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
 
 ## 4. What the harness caught that we didn't
 
@@ -75,6 +75,13 @@ doesn't give status codes, so we decided them ourselves and pinned them in tests
 Why we missed it: our tests checked *our* decisions, and nobody asked the product owner before
 claiming. The decisions were in the plan but weren't flagged as "ask the PO". Lesson for the
 workflow: open status-code decisions on a drip feature go to the product owner before the claim.
+We changed the workflow accordingly: the spec template has an "Ask the PO?" column, `/make-plan`
+flags such decisions, and `/pre-claim` won't say yes without the PO's answers.
+
+Fix: PR #7 (`c4a6dd9`) answers 400 for the main speaker and 404 for removing someone who isn't a
+co-speaker, deployed as `4ee0b38`. At tick 90 the harness's latest runs of check-1 and check-2
+still showed the old answers (200, 409), so they likely ran before the deploy. TODO(human): confirm
+the checks go OK, and record the bleed (−29.33 points at tick 90).
 
 ## 5. Reusable artifacts
 
@@ -82,7 +89,7 @@ workflow: open status-code decisions on a drip feature go to the product owner b
   plans with a decisions list for the human.
 - **Execution skill** [`.claude/skills/execute-plan/`](.claude/skills/execute-plan/SKILL.md): phase
   by phase, test-gated, one commit per phase.
-- **Cross-tool plan review** (`todo/*_plan_review.md`): Blocking / Significant / Minor / What's good,
+- **Cross-tool plan review** (`workflow/plans/*/*_plan_review.md`): Blocking / Significant / Minor / What's good,
   with file:line.
 - **Spec copies** in `workflow/specs/`, so agents work offline from the harness rate limit.
 - **Spec template with an "ask the PO" column** [`workflow/templates/spec.md`](workflow/templates/spec.md)

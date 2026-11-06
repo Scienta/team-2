@@ -78,7 +78,7 @@ how you work is your team's call, and your own instructions go in `.claude/rules
 
 **Every agent must now read all of `.claude/rules/*.md` before doing anything else.** Claude Code
 loads them automatically; other agents (Copilot CLI, Codex, …) read them explicitly. Skills are in
-`.claude/skills/`, plans in `todo/` (moving to `workflow/plans/`), the process in
+`.claude/skills/`, plans in `workflow/plans/`, the process in
 `workflow/README.md`.
 
 Non-negotiables, in case you read nothing else:

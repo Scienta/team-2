@@ -1,6 +1,6 @@
 ---
 name: make-plan
-description: Write a phased, restart-proof plan for a feature or chore into todo/ (workflow/plans/todo/ after the reorg). Use before implementing any harness feature.
+description: Write a phased, restart-proof plan for a feature or chore into workflow/plans/todo/. Use before implementing any harness feature.
 ---
 
 
@@ -15,7 +15,7 @@ description: Write a phased, restart-proof plan for a feature or chore into todo
 4. Find the optimal order of implementation of the tasks,
    minimising the number of reads and writes (keeping the
    token consumption down)
-5. Write the plan into a markdown file in the `todo` folder.
+5. Write the plan into `workflow/plans/todo/<slug>_plan.md`, starting from `workflow/templates/plan.md`.
 6. At the top of the file, insert a todo-list with the phases
    or steps that you have defined, and format the list in terms
    of check-box items.

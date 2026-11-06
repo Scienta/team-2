@@ -1,4 +1,4 @@
-# Ratings: our edge cases (team policy in todo/ratings_plan.md, E1 to E6).
+# Ratings: our edge cases (team policy in workflow/plans/done/ratings_plan.md, E1 to E6).
 # Run: examples/run.sh [base-url]
 
 # Setup: a speaker with one talk

@@ -8,8 +8,8 @@ How team-2 gets from a feature request to a claim. Every agent starts with
 feature request on the harness
   → /spec-from-request          our spec + decisions table           workflow/specs/<slug>.md
   → a person approves, asks the product owner about harness-visible decisions
-  → /make-plan                  phased, restart-proof plan           todo/<slug>_plan.md
-  → plan-reviewer (or another tool) reviews it, the plan answers     todo/<slug>_plan_review.md
+  → /make-plan                  phased, restart-proof plan           plans/todo/<slug>_plan.md
+  → plan-reviewer (or another tool) reviews it, the plan answers     plans/todo/<slug>_plan_review.md
   → /execute-plan               phase by phase, tests, one commit each
   → PR in the GitHub UI → merge to main deploys → /health shows the SHA
   → /pre-claim                  checklist with evidence              workflow/checklists/pre-claim.md
@@ -40,7 +40,7 @@ feature request on the harness
 > Read AGENTS.md and follow instructions.
 > /spec-from-request <slug>            # then a person approves the decisions
 > /make-plan <slug>                    # then the plan-reviewer agent, then revise
-> /execute-plan todo/<slug>_plan.md    # restart the agent between phases if the context is full
+> /execute-plan workflow/plans/todo/<slug>_plan.md    # restart the agent between phases if the context is full
 > /pre-claim <slug>                    # a person claims if it says yes
 ```
 

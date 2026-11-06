@@ -13,7 +13,7 @@ Optional tail (as budget allows, in this order):
 - [x] Phase 7: Review agents (`plan-reviewer`, `spec-checker`), `.claude/settings.json`, `workflow/README.md`
 
 Last (after `ratings-verify` is merged):
-- [ ] Phase 8: Move `todo/` and `done/` to `workflow/plans/`, update `REVIEW.md` §1 links, final gate, move this plan to done, ask about pushing
+- [x] Phase 8: Move `todo/` and `done/` to `workflow/plans/`, update `REVIEW.md` §1 links, final gate, move this plan to done, ask about pushing
 
 Revised after the review in `todo/workflow_reorg_plan_review.md`: B1, B2, S1–S4 and M1–M8 are all
 addressed (see "Review response" at the end).
