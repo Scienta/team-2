@@ -89,6 +89,26 @@ class AcceptanceTest {
         assertStatus(200, decide(talk, "ACCEPTED"), "ACCEPTED");
     }
 
+    // spec-checker gap 1 (D4): the reviewer rule also holds from WAITLISTED
+    @Test
+    void acceptFromWaitlistedNeedsTwoReviewers() throws Exception {
+        long talk = newTalk(newSpeaker());
+        assertEquals(200, decide(talk, "WAITLISTED").statusCode());
+        assertEquals(200, rate(talk, 1, 5).statusCode());
+        assertEquals(409, decide(talk, "ACCEPTED").statusCode());
+        assertEquals("WAITLISTED", statusOf(talk));
+    }
+
+    // spec-checker gap 2 (D10): an invalid status is 400 even on a talk whose state would refuse it
+    @Test
+    void invalidStatusBeforeState() throws Exception {
+        long speaker = newSpeaker();
+        long talk = newTalk(speaker);
+        assertEquals(200, withdraw(talk, speaker).statusCode());
+        assertEquals(400, send("PUT", "/talks/" + talk + "/status", "{\"status\":\"SUBMITTED\"}",
+                "application/json").statusCode());
+    }
+
     @Test
     void finalDecisionsAreFinal() throws Exception {
         long accepted = newTalk(newSpeaker());
@@ -169,7 +189,9 @@ class AcceptanceTest {
         for (long talk : new long[] {submitted, waitlisted, accepted}) {
             HttpResponse<String> res = withdraw(talk, speaker);
             assertStatus(200, res, "WITHDRAWN");
-            assertEquals(talk, JSON.readTree(res.body()).get("id").asLong());
+            JsonNode body = JSON.readTree(res.body());
+            assertEquals(talk, body.get("id").asLong());
+            assertTrue(body.has("ratingCount") && body.has("averageRating") && body.has("coSpeakerIds"), body.toString());
         }
     }
 
@@ -217,6 +239,8 @@ class AcceptanceTest {
             assertEquals(400, send("POST", path, body, "application/json").statusCode(), body);
         }
         assertEquals(400, send("POST", path, null, "application/json").statusCode(), "no body");
+        assertEquals(400, send("POST", path, "[1]", "application/json").statusCode(), "array");
+        assertEquals(400, send("POST", "/talks/abc/withdraw", "{\"speakerId\":1}", "application/json").statusCode());
         assertEquals(415, send("POST", path, "{\"speakerId\":1}", "text/plain").statusCode(), "text/plain");
         assertEquals("SUBMITTED", statusOf(talk));
     }
@@ -227,6 +251,28 @@ class AcceptanceTest {
         long talk = newTalk(newSpeaker());
         assertEquals(200, decide(talk, "REJECTED").statusCode());
         assertEquals(403, withdraw(talk, newSpeaker()).statusCode());
+    }
+
+    // spec-checker gaps 5 and 6 (D13, D14): decided and withdrawn talks still take ratings and
+    // co-speakers, and the co-speaker responses show the status
+    @Test
+    void decidedTalksStillTakeRatingsAndCoSpeakers() throws Exception {
+        long speaker = newSpeaker();
+        long accepted = newTalk(speaker);
+        long rejected = newTalk(speaker);
+        long withdrawn = newTalk(speaker);
+        rateAll(accepted, 4, 5);
+        assertEquals(200, decide(accepted, "ACCEPTED").statusCode());
+        assertEquals(200, decide(rejected, "REJECTED").statusCode());
+        assertEquals(200, withdraw(withdrawn, speaker).statusCode());
+        String[] expected = {"ACCEPTED", "REJECTED", "WITHDRAWN"};
+        long[] talks = {accepted, rejected, withdrawn};
+        for (int i = 0; i < talks.length; i++) {
+            assertEquals(200, rate(talks[i], 9, 3).statusCode(), expected[i]);
+            long co = newSpeaker();
+            assertStatus(200, send("PUT", "/talks/" + talks[i] + "/co-speakers/" + co, null, null), expected[i]);
+            assertStatus(200, send("DELETE", "/talks/" + talks[i] + "/co-speakers/" + co, null, null), expected[i]);
+        }
     }
 
     @Test
