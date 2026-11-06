@@ -40,8 +40,8 @@ When executing a plan, do as follows:
   (compiler and test output) that may show up. Again: no broken windows!
 - If the plan changed HTTP behaviour, start the service locally and run
   `examples/run.sh` against it.
-- Update the branch with the latest `main`, then raise the coverage floor if coverage went up
-  (`workflow/coverage/README.md`, "Before merging").
+- Update the branch with the latest `main`. Don't change the coverage floor in `pom.xml`: it's
+  frozen (`workflow/coverage/README.md`).
 
 ## After Completing the Plan
 

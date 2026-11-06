@@ -24,7 +24,7 @@
 
 ## Decisions for the human to check
 
-Recorded in the spec's decisions table as "agent, pending Julian".
+Recorded in the spec's decisions table; Julian delegated the decision to Claude, which kept D1 on harness evidence (workshop registration's e-mail checks pass with the same rule). The coverage floor commits were superseded by the freeze at 0.870 (#44).
 
 - **D1. Which e-mail check on create? (harness-visible)**
   - a) Workshop registration's rule (its D7): one `@`, no whitespace, text before the `@`, a dot with
