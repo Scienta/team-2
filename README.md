@@ -144,3 +144,92 @@ Push to `master`, Jenkins builds and deploys to the test server. Ask Kjetil for 
 ## Contact
 
 cfp-team@example.com
+
+# Agentic workflow
+
+The team's skills and agent instructions support a plan first, then execute, workflow. Agents
+start from **`AGENTS.md`**: the organisers' facts first, then the team's workflow, which points to
+the skill files in `skills/`.
+
+## Workflow
+
+A typical session runs as follows. We assume that the coding agent is just re-started.
+
+### 1. Initial instructions
+
+Make the agent read the skills:
+
+```sh
+> Read AGENTS.md and follow instructions.
+```
+
+This triggers the agent to read all necessary skill files and other necessary documentation about the project,
+as well as checking that the development environment is sound (Docker running).
+
+### 2. Planning
+
+The next step is to instruct the agent to prepare for the next development task, and this is done through creating
+a step-by-step plan for how to implement the next feature or do the next chore. The `making_a_plan.md` file is part of
+the skill-set, but repeating the file name makes sure this is how the plan is made.
+
+```sh
+> We have to add request logging to the application. Every request shall be logged at INFO level with
+  method, path and response status.
+  Recall `making_a_plan.md` and create the plan. Place the plan in `todo/request_logging_plan.md`.
+```
+
+The plan should be sufficiently complete to allow an agent restart (or crash). This is part of the instructions of making a plan,
+but it helps to ask:
+
+```sh
+> Is the plan robust enough to withstand an agent restart with a cleared context?
+```
+
+When done, re-start the agent if the context window is starting to fill up.
+
+### 3. Plan Execution
+
+Assuming a restart:
+
+```sh
+> Read AGENTS.md and follow instructions. Then, read todo/request_logging_plan.md.
+```
+
+When the agent has read the plan, and feels confident about the task:
+
+```sh
+> Recall `phase_execution.md` and execute the plan.
+```
+
+The agent is instructed to halt between each phase in the plan, but sometimes fail to do so.
+Anyways, eventually, the plan shall be executed, and the agent is already instructed to leave
+no broken windows, so all tests should run flawlessly at this point.
+
+Now all you have to do is to push, merge (which deploys) and go back to the top and start over.
+
+## Local Variations in `LOCAL.md`
+
+If you have personal preferences that the coding agent should know about, place them in a file
+`LOCAL.md` at the repo root. The file is ignored by git, but will be read as part of the
+master instructions.
+
+## Workflow files
+
+```
+.
+├── AGENTS.md                   # Organiser facts + team agent instructions
+├── skills/
+│   ├── PROJECT.md             # Project-specific overrides (edit this!)
+│   ├── making_a_plan.md       # Planning methodology
+│   ├── making_a_master_plan.md # Planning for larger tasks
+│   └── phase_execution.md     # Execution patterns
+├── adrs/                       # Architecture decision records
+├── todo/                       # Plans in progress
+└── done/                       # Completed plans
+```
+
+**Edit `skills/PROJECT.md` when the project:**
+- Uses a different directory structure or test setup
+- Has different environment requirements
+- Has specific code conventions (naming, formatting, etc.)
+- Requires additional setup steps
