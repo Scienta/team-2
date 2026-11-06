@@ -38,7 +38,7 @@ When executing a plan, do as follows:
 When the plan is completed, all boxes checked off, and no tests are failing,
 do as follows:
 
-1. See if there are any remaining, required updates to ADRs in `adrs`,
+1. See if there are any remaining, required updates to ADRs in `workflow/adrs`,
    if any architecture driving decisions have been made through the work.
 2. Move the plan from `todo` to `done`
 3. Commit the final changes to git

@@ -3,7 +3,7 @@
 
 1. Get an overview of the tasks to be done. For a feature, fetch its spec or feature
    request from the harness (see "Harness API" in `AGENTS.md`).
-2. Check with the ADRs in `adrs` to make sure you have an overview
+2. Check with the ADRs in `workflow/adrs` to make sure you have an overview
    over important architectural decisions made so far.
 3. Break down the work into clearly separated phases with
    clear deliverables that can be tested (if applicable)
