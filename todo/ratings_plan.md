@@ -2,7 +2,7 @@
 
 - [x] Phase 0: Check the harness feedback for the `ratings` checks and revise the decisions below (tick 44: ratings check-1 to check-5 all OK, no FAULTY checks; no policy changed)
 - [x] Phase 1: Unit tests for the rating display format (the D2 guard failed on local JDK 21: U+202F before AM/PM. Fixed `Utils.usShort` with the explicit pattern `M/d/yy, h:mm a`; prod JDK 11 was unaffected, but a JDK upgrade would have broken it)
-- [ ] Phase 2: Integration tests for current ratings behaviour (`RatingsTest`, all green)
+- [x] Phase 2: Integration tests for current ratings behaviour (`RatingsTest`, all green; 14 tests, no new bugs found)
 - [ ] Phase 3: E1 error precedence, red then green (E1 approved: 404)
 - [ ] Phase 4: Hurl examples for the edge cases
 - [ ] Phase 5: Update `docs/`: record the known-issue decisions, and keep api, architecture and operations in line with the code
