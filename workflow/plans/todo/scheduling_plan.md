@@ -2,7 +2,7 @@
 
 - [ ] Phase 0: Commit the plan and its review; get Eirik's OK on the S4 wording in the spec
 - [x] Phase 1: The venue and the rules as pure code (`Venue`, `SchedulingRules`), with unit tests
-- [ ] Phase 2: `PUT` and `GET /programme/{room}/{slot}` (D1 to D10, D13 to D18, D20), with `ProgrammeTest`
+- [x] Phase 2: `PUT` and `GET /programme/{room}/{slot}` (D1 to D10, D13 to D18, D20), with `ProgrammeTest`. The `DuplicateKeyException` → 409 path moved to Phase 4, with the concurrency tests that reach it
 - [ ] Phase 3: `DELETE /programme/{room}/{slot}` (D11, D12, D18)
 - [ ] Phase 4: Concurrency (D19): tests that assert the loser's reason, so removing either lock fails one; green 3 runs in a row; then offer the push
 - [ ] Phase 5: Hurl examples: a deploy-safe `examples/scheduling.hurl` and a local-only happy path
@@ -140,7 +140,8 @@ Commit: `feat: Add venue and scheduling rules`.
       (`find(room, slot).isPresent()`), the other talks in the slot (`talksInSlot`, each via
       `TalkDao.findById`, unlocked reads)
    6. `SchedulingRules.decide`: Ok → insert and return the Entry; AlreadyHere → return the Entry (200,
-      D8); Violation → 409 with the reason. A `DuplicateKeyException` on insert → 409 with P3's reason.
+      D8); Violation → 409 with the reason. (The `DuplicateKeyException` → 409 with P3's reason comes in
+      Phase 4, where a test reaches it.)
    `get(String room, String slot)`: 404 for an unknown place (D1) or an empty one (D2).
 4. `ProgrammeEntry` record: `room`, `slot`, `start`, `end`, `talkId`, in that order (as the API).
 5. `ProgrammeController`: `PUT` and `GET /programme/{room}/{slot}`, `@RequestBody Map<String, Object>`.
@@ -178,6 +179,8 @@ Check: `./mvnw test -Dtest=ProgrammeTest` green; `./mvnw package` green. Commit:
 
 ## Phase 4: Concurrency (D19)
 
+0. In `ProgrammeService.schedule`, catch `DuplicateKeyException` on insert → 409 with P3's reason
+   (moved here from Phase 2).
 1. In `ProgrammeTest`, start the requests together with `CompletableFuture`, in 10 rounds. **Each
    round** (S3): `TRUNCATE programme_entry` and new talks with new speakers. Each test asserts the
    loser's reason, D19's "the 409 it would get if it came second" (S2):
