@@ -28,7 +28,8 @@ and the claim):
    `<feature>_plan_review.md` next to it; the first agent revises. Examples:
    `workflow/plans/done/ratings_plan_review.md`, `workflow/plans/done/workflow_reorg_plan_review.md`.
 4. **Human approves the decisions** (e.g. E1 in the ratings plan: a missing talk gives 404 before
-   score validation).
+   score validation). We have no product owner, so every open question comes to a person with
+   options and a recommendation ([`.claude/rules/no-product-owner.md`](.claude/rules/no-product-owner.md)).
 5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
    tests and Hurl examples, one commit per phase, no broken windows. Before the PR,
    [`workflow/scripts/local-rollout.sh`](workflow/scripts/local-rollout.sh) runs the image we deploy
