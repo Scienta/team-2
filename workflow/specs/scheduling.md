@@ -84,7 +84,7 @@ Depends on acceptance (issue #11, PR #12) for `ACCEPTED`. Programme-export build
 
 | ID | Question | Our answer | Ask the PO? | Approved by (person, PO answer) |
 |---|---|---|---|---|
-| D1 | Unknown room or slot in the path (`R4`, `S6`, lower case `r1`), on any method | 404, before anything else | yes | Eirik, 2026-11-06: recommendation (Q7 a) |
+| D1 | Unknown room or slot in the path (`R4`, `S6`, lower case `r1`), on any method | 404, before anything else except Spring's own body binding: on `PUT`, a bad body (D14) gets its 400/415 first, before the controller runs | yes | Eirik, 2026-11-06: recommendation (Q7 a); binding note approved by Eirik, 2026-11-06 (plan review S4) |
 | D2 | `GET` a room and slot with nothing in it | 404 | **yes, likely checked** | Eirik, 2026-11-06: recommendation (Q1 a) |
 | D3 | `PUT` body: `talkId` missing, `null`, not an integer (incl. `"5"`, `1.5`), or below 1 | 400 | yes | Eirik, 2026-11-06 |
 | D4 | `PUT` with a `talkId` that isn't a talk | 400, as an unknown `speakerId` in `POST /talks` (an id in the body, not the path). Fallback: 404 | yes. **Open risk** | Eirik, 2026-11-06: recommendation (Q6 a) |
@@ -97,7 +97,7 @@ Depends on acceptance (issue #11, PR #12) for `ACCEPTED`. Programme-export build
 | D11 | `DELETE` a room and slot with nothing in it | 404, as removing someone who isn't a co-speaker | yes | Eirik, 2026-11-06: recommendation (as Q1 a) |
 | D12 | Response to a successful `DELETE` | 204, no body (the API gives no response content). Alternative: 200 with the removed Entry | **yes, likely checked** | Eirik, 2026-11-06: recommendation (Q3 a) |
 | D13 | Precedence when several things are wrong | 404 room/slot → 400 body → 400 unknown talk → 409 not accepted → 409 workshop not in `S4` → 200 if already in this place (D8) → 409 elsewhere on the programme → 409 room and slot taken → 409 speaker clash | yes | Eirik, 2026-11-06: recommendation (Q8 a) |
-| D14 | Bad bodies: no body, not JSON, a JSON array; `Content-Type: text/plain` | 400; 415 (Spring binding, as ratings and acceptance) | no | Eirik, 2026-11-06 |
+| D14 | Bad bodies: no body, not JSON, a JSON array; `Content-Type: text/plain` | 400; 415 (Spring binding, as ratings and acceptance). This comes before every other check, D1's 404 included, since Spring answers before the controller | no | Eirik, 2026-11-06; binding note approved by Eirik, 2026-11-06 (plan review S4) |
 | D15 | `PUT` success | 200 with the Entry (`room`, `slot`, `start`, `end`, `talkId`), as the API says. Not 201 | no | Eirik, 2026-11-06 |
 | D16 | Times in the Entry | From the fixed slot table, `HH:mm` (`"09:00"`) | no (the rule is clear) | Eirik, 2026-11-06 |
 | D17 | A talk changes after it's on the programme (withdrawn, co-speakers changed, format can't change) | The programme stays as it is: `GET` still shows it, nothing is removed or re-checked ("if a talk changes afterwards, the programme stays as it is") | no (the rule is clear) | Eirik, 2026-11-06 |
