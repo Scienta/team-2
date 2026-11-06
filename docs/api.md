@@ -152,6 +152,31 @@ Returns the talk object with `status` `WITHDRAWN`.
 
 Both endpoints: no body, invalid JSON or a JSON array is 400, a non-JSON `Content-Type` 415.
 
+## Workshop registration
+
+`{id}` is the workshop's talk id. Each workshop has room for 20 attendees. An attendee doesn't have to
+be a registered speaker. There's no way to remove a registration, so a seat stays taken.
+
+### `POST /workshops/{id}/registrations` → 201
+
+```json
+{"name": "Ada Lovelace", "email": "ada@example.com"}
+```
+
+Returns `id`, `workshopId`, `name` and `email`, with `name` and `email` as typed. Checks, in this
+order: the talk exists and is a `WORKSHOP` (404); `name` and `email` are strings with text in them and
+no control characters (400); `email` has one `@`, no whitespace inside, and a dot with text on both
+sides after the `@`, and at most 254 characters after trimming (400); the talk is `ACCEPTED` (409); the workshop has fewer than 20 registrations
+(409); the email isn't registered for this workshop (409), ignoring letter case and surrounding
+whitespace.
+
+No body, invalid JSON or a JSON array is 400, a non-JSON `Content-Type` 415.
+
+### `GET /workshops/{id}/registrations` → 200
+
+The registrations in the order they registered, `[]` when none. A workshop that was withdrawn keeps
+its list. A talk that doesn't exist or isn't a `WORKSHOP` is 404.
+
 ## Ratings
 
 ### `PUT /talks/{id}/ratings/{reviewerId}` → 200
