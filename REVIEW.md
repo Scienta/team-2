@@ -56,6 +56,11 @@ PRs never deploy; manual deployment is main-only.
 - **Decisions** the spec leaves open were approved by a person (recorded in the plan).
 - **Tests:** `./mvnw package` with Testcontainers Postgres after every phase; one integration test
   class per feature (`CoSpeakersTest`, `RatingsTest`, …).
+- **Coverage ratchet:** JaCoCo measures which production code the tests visit, and `./mvnw package`
+  fails if line coverage drops below the floor in `pom.xml` (started at 72.2 %, 278/385 lines). A
+  change that raises coverage raises the floor; lowering it needs a person's consent. Report in
+  `target/site/jacoco/index.html`, summary from `workflow/coverage/line-coverage.sh`
+  ([`workflow/coverage/`](workflow/coverage/README.md)).
 - **Hurl examples** in `examples/` against a local service, then against our URL.
 - **Harness feedback** (`/api/teams/team-2/feedback`) after deploy.
 
@@ -63,6 +68,11 @@ PRs never deploy; manual deployment is main-only.
 the talks spec allows three. The plan review caught it before execution; the test would have failed
 on a 409 before testing any ranking. The review of the reorg plan also caught that a per-line
 HTML-comment check would have reported an empty claim-log section as filled.
+
+**Bug a person's PR review caught:** the coverage ratchet (PR #8) checked each branch against its
+own floor. The reviewer pointed out that two parallel PRs can each pass and still break `main`
+together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: update the branch with
+`main` and set the floor from that run before merging (`workflow/coverage/README.md`).
 
 The `plan-reviewer` agent's review of the Spring Boot 4 plan
 (`workflow/plans/done/spring-boot-4_plan_review.md`) caught three blocking problems before any code
@@ -92,6 +102,14 @@ On Boot 4.1.2 the net caught three more:
   unit tests, which only pinned a 200. Fixed in `WebConfig` and pinned by a new
   `WireFormatTest.errorJsonIsUtf8`.
 
+Merging `main` (coverage ratchet, PR #8) into the Boot 4 branch turned up two more bugs:
+- **The ratchet would have measured nothing.** The Mockito fix had set surefire's `<argLine>`,
+  which replaces the JaCoCo agent's. Found by reading the merged pom; fixed with `@{argLine}`.
+- **`line-coverage.sh` overstated coverage.** It summed `jacoco.csv` rows, and those count a line
+  twice when it opens an anonymous class (`WebConfig`). The script said 0.773 while the gate
+  measured 0.772, so the floor the script recommended failed the build. The script now reads the
+  report-wide total from `jacoco.xml`, the same number the gate uses.
+
 ## 3. Claim log
 
 | Feature | Claimed or skipped | Tick | Evidence before claiming |
@@ -117,9 +135,17 @@ We changed the workflow accordingly: the spec template has an "Ask the PO?" colu
 flags such decisions, and `/pre-claim` won't say yes without the PO's answers.
 
 Fix: PR #7 (`c4a6dd9`) answers 400 for the main speaker and 404 for removing someone who isn't a
-co-speaker, deployed as `4ee0b38`. At tick 90 the harness's latest runs of check-1 and check-2
-still showed the old answers (200, 409), so they likely ran before the deploy. TODO(human): confirm
-the checks go OK, and record the bleed (−29.33 points at tick 90).
+co-speaker, deployed as `4ee0b38`. The harness timeline shows check-1 and check-2 FAULTY on ticks
+69–90 and OK from tick 91. Total bleed was −29.33 at tick 90.
+
+**A deploy can cost points, even with no change in behaviour.** At tick 121, 15 of the 18 claimed
+checks went FAULTY for that one tick, all on `POST /speakers`, and bleed went from −30.93 (tick 119)
+to −37.83 (tick 122). The container logs line up with the rollout of `3cc2288` (PR #8, build and
+docs only): the new revision had started by 13:27:07Z and the old one shut down at 13:27:42Z. It
+happened again at tick 126: 7 checks, bleed −37.83 to −41.93, as the rollout of `2ce9c6b` (PR #9)
+shut down the old revision at 13:33:19Z. Tick 102 (two checks, also `POST /speakers`, no response
+recorded) came soon after the deploy of `33ad4c3`. We didn't see this because we only looked at
+current status, not the timeline.
 
 ## 5. Reusable artifacts
 
@@ -141,6 +167,9 @@ the checks go OK, and record the bleed (−29.33 points at tick 90).
   [`spec-checker`](.claude/agents/spec-checker.md) agent.
 - **Plan reviewer agent** [`.claude/agents/plan-reviewer.md`](.claude/agents/plan-reviewer.md): the
   review rubric, with our two real misses as examples.
+- **Coverage ratchet** [`workflow/coverage/`](workflow/coverage/README.md): JaCoCo `check` with a
+  floor property in `pom.xml` that only goes up, plus a script that prints the value to raise it
+  to. No extra tools, works on any Maven project.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
 - **API snapshot** [`workflow/scripts/snapshot-api.sh`](workflow/scripts/snapshot-api.sh)
@@ -155,4 +184,7 @@ the checks go OK, and record the bleed (−29.33 points at tick 90).
 
 ## 6. One thing we'd do differently
 
-TODO(human)
+Candidate: don't merge docs-only PRs on their own, since every push to `main` redeploys and a
+rollout can bleed points (§4, tick 121). Batch them with the next feature merge.
+
+TODO(human): pick the one thing we'd do differently (this candidate or another).

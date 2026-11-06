@@ -16,6 +16,9 @@
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>4.1.2</spring-boot.version>
+        <jacoco.version>0.8.16</jacoco.version>
+        <!-- Line coverage floor, only ever raised: see workflow/coverage/README.md -->
+        <coverage.line.minimum>0.772</coverage.line.minimum>
     </properties>
 
     <!-- We can't use spring-boot-starter-parent because of the old company parent pom,
@@ -90,8 +93,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <!-- Mockito's inline mock maker as an agent: JDK 21+ warns when it attaches itself -->
-                    <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+                    <!-- @{argLine} keeps the JaCoCo agent; Mockito as an agent because JDK 21+ warns when it attaches itself -->
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -103,6 +106,47 @@
                         <goals>
                             <goal>properties</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${coverage.line.minimum}</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

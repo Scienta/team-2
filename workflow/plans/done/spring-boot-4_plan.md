@@ -9,7 +9,7 @@
 
 ## Context (read this after a restart)
 
-- Spec: `workflow/specs/Upgrade-to-Spring-Boot-4.x.md` (the harness feature request, slug
+- Spec: `workflow/specs/spring-boot-4.md` (the harness feature request, slug
   `spring-boot-4`, released at tick 40). Claimed? **No.** A person claims, a claim is permanent.
   The rules: run on Boot 4.x on a supported Java; **nothing else changes for users** (speakers,
   talks, ratings specs, formats included); `GET /actuator/info` `versions.springBoot` must tell the

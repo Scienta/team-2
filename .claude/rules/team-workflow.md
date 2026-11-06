@@ -49,7 +49,8 @@ details.
 ### Running Checks
 
 ```bash
-./mvnw package                      # build and run all tests
+./mvnw package                      # build, run all tests, coverage report and floor
+workflow/coverage/line-coverage.sh  # line coverage vs the floor in pom.xml
 ./mvnw test -Dtest=SomeTest         # run a single test class
 examples/run.sh [base-url]          # Hurl examples against a running service
 ```
@@ -67,7 +68,8 @@ more detailed information for debugging and validation.
 **Never create a PR using the GitHub CLI (`gh`) unless directly asked to do so.**
 PRs must be made using click-ops to conform to organizational git processes.
 
-Generally, refrain from using the GitHub CLI (`gh`) unless explicitly asked.
+Use the GitHub CLI (`gh`) for issues (see `.claude/rules/issues.md`); otherwise refrain from it
+unless explicitly asked.
 
 ### CI/CD Awareness
 
@@ -91,6 +93,7 @@ When you make changes to files:
 2. Before finishing, ensure:
    - **NO FAILING TESTS**
    - **NO WARNINGS**
+   - **NO COVERAGE DROP** (`workflow/coverage/README.md`)
 3. If tests or builds fail, fix them before completing your work
 
 ### Code Quality
