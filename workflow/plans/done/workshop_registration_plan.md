@@ -36,7 +36,7 @@
 ## Decisions for the human to check
 
 Rows D1 to D18 in the spec are approved by Håkon on 2026-11-06 (D6, D7 and D17 were changed by the plan
-review afterwards, and await confirmation). We have no product owner, so a person on the team decides
+review afterwards, and Håkon confirmed them, option a) on each). We have no product owner, so a person on the team decides
 (`.claude/rules/no-product-owner.md`, merged while this plan ran): that person's answers are what
 pre-claim item 1 checks.
 
@@ -193,7 +193,7 @@ Check: `./mvnw package` green, no warnings, no coverage drop. Commit:
 
 | Finding | Response |
 |---|---|
-| B1 no PO | Settled by `.claude/rules/no-product-owner.md`, merged while this plan ran: a person on the team decides. D6, D7 and D17 changed after approval, so they go back to Håkon with options |
+| B1 no PO | Settled by `.claude/rules/no-product-owner.md`, merged while this plan ran: a person on the team decides. D6, D7 and D17 changed after approval, so they went back to Håkon with options; a) on each |
 | S1 re-read untested | Added `aRegistrationWaitingForTheLockSeesTheWithdrawal`, and a by-hand falsification |
 | S2 blocked Phase 3 | Gone: Acceptance merged (`50ea65c`) while the review ran. Plan to done is the last step |
 | S3 nothing committed | Phase 0 |
