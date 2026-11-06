@@ -26,6 +26,4 @@ Match the existing code:
   `TestDatabase.fresh(registry)` in a `@DynamicPropertySource` method; see `TalksTest`
 - Docker must be running: the tests start Postgres with Testcontainers
 - Behaviour visible over HTTP also gets a Hurl example in `examples/`
-- Coverage: JaCoCo report in `target/site/jacoco/index.html` after `./mvnw package`. Line coverage
-  of `src/main/java` may not drop below `coverage.line.minimum` in `pom.xml`; raise the floor when
-  coverage goes up, lower it only with a person's consent. See `workflow/coverage/README.md`
+- Line coverage may not drop: see `workflow/coverage/README.md`

@@ -90,8 +90,7 @@ When you make changes to files:
 2. Before finishing, ensure:
    - **NO FAILING TESTS**
    - **NO WARNINGS**
-   - **NO COVERAGE DROP**: line coverage at or above `coverage.line.minimum` in `pom.xml`
-     (the build checks it), and the floor raised if coverage went up
+   - **NO COVERAGE DROP** (`workflow/coverage/README.md`)
 3. If tests or builds fail, fix them before completing your work
 
 ### Code Quality

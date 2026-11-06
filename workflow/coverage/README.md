@@ -33,7 +33,8 @@ Floor in pom:  0.722
 
 - `coverage.line.minimum` in `pom.xml` is the floor: `./mvnw package` fails when line coverage is
   below it. A coverage drop is a broken window; fix it with tests.
-- When a change raises coverage, the same change raises the floor to the ratio the script prints.
-  Otherwise coverage can slide back down to the old floor.
+- When a change raises coverage, the same change raises `coverage.line.minimum` to the ratio
+  `line-coverage.sh` prints (in a plan, in its last commit). Otherwise coverage can slide back down
+  to the old floor.
 - Lowering the floor needs explicit consent from a person on the team (deleting well-tested code
   can lower the ratio without anything being wrong). Never lower it just to make the build pass.

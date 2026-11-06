@@ -26,8 +26,7 @@ When executing a plan, do as follows:
 3. When completed, add at least one test for the new function
 4. When the new and old tests all run WITHOUT WARNINGS (`./mvnw package`),
    check off the item in the checklist, and commit the changes to git.
-   `./mvnw package` also fails if line coverage drops below `coverage.line.minimum` in
-   `pom.xml`: that's a broken window, fix it with tests (`workflow/coverage/README.md`).
+   A coverage drop also fails the build: fix it with tests (`workflow/coverage/README.md`).
 5. Check the status of the context window.
    If tokens > 130000, stop and report to the human.
    If tokens < 130000, move to the next item on the list.
@@ -41,9 +40,7 @@ When executing a plan, do as follows:
   (compiler and test output) that may show up. Again: no broken windows!
 - If the plan changed HTTP behaviour, start the service locally and run
   `examples/run.sh` against it.
-- Run `workflow/coverage/line-coverage.sh`. If the ratio is above the floor, raise
-  `coverage.line.minimum` in `pom.xml` to the printed ratio, in the plan's last commit.
-  Never lower the floor without the human's explicit consent.
+- Raise the coverage floor if coverage went up (`workflow/coverage/README.md`).
 
 ## After Completing the Plan
 

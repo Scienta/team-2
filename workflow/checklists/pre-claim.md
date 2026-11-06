@@ -8,7 +8,7 @@ and has evidence a person can check. Run it with `/pre-claim <slug>`.
 2. **Spec coverage.** The `spec-checker` agent maps every rule and decision to a test or Hurl
    assertion; nothing uncovered.
 3. **Build.** `./mvnw package` is green on `main` with the feature merged, which includes the
-   line coverage floor (`workflow/coverage/line-coverage.sh` shows the numbers).
+   coverage floor (`workflow/coverage/README.md`).
 4. **Deployed.** The deploy workflow for the merge is green, and `GET $TEAM_URL/health` returns
    `{"status": "ok", "version": "<merged SHA>"}`.
 5. **Examples against our URL.** `examples/run.sh https://fagsem-h2026-team-2.scienta.cloud` is
