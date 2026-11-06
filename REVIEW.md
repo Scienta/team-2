@@ -28,7 +28,8 @@ and the claim):
    `<feature>_plan_review.md` next to it; the first agent revises. Examples:
    `workflow/plans/done/ratings_plan_review.md`, `workflow/plans/done/workflow_reorg_plan_review.md`.
 4. **Human approves the decisions** (e.g. E1 in the ratings plan: a missing talk gives 404 before
-   score validation).
+   score validation). We have no product owner, so every open question comes to a person with
+   options and a recommendation ([`.claude/rules/no-product-owner.md`](.claude/rules/no-product-owner.md)).
 5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
    tests and Hurl examples, one commit per phase, no broken windows.
 6. **PR in the GitHub UI**, with a risk list from [`/list-risks`](.claude/skills/list-risks/SKILL.md):
@@ -45,6 +46,11 @@ The whole flow on one screen: [`workflow/README.md`](workflow/README.md). Team r
 This file is written as we go: [`.claude/rules/review-log.md`](.claude/rules/review-log.md) maps
 each event (review caught a bug, claim, harness surprise, new artifact) to its section, and
 `/execute-plan` ends by updating it and running `workflow/scripts/check-review.sh`.
+
+The [CI workflow](.github/workflows/deploy.yml) runs `./mvnw -B clean verify` on Java 25
+for PRs and pushes to main. For competition speed, main deployment runs independently
+in parallel with the build/test job; a failing main test does not prevent deployment.
+PRs never deploy; manual deployment is main-only.
 
 ## 2. How we reviewed agent output
 
@@ -80,6 +86,42 @@ own floor. The reviewer pointed out that two parallel PRs can each pass and stil
 together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: update the branch with
 `main` and set the floor from that run before merging (`workflow/coverage/README.md`).
 
+The `plan-reviewer` agent's review of the Spring Boot 4 plan
+(`workflow/plans/done/spring-boot-4_plan_review.md`) caught three blocking problems before any code
+was written:
+- The plan only tested the trailing slash on `/talks/{id}/` and treated keeping it as a question
+  for the PO. `speakers.md:20` requires it, `POST /speakers/` included. Spring 6 drops it, so the
+  upgrade would have broken a claimed feature.
+- The plan promised identical error bodies, which can't hold: Spring 6 and Jackson 3 reword their
+  own messages, and we send them to users with `include-message=always`.
+- The before/after snapshot would have collided on the unique e-mail index, so its diff could
+  never come out empty.
+
+During the upgrade itself, `WireFormatTest` (written first, on Boot 2.7) caught that Spring 6
+reorders the keys in each entry of a 400's `errors` array (`objectName`, `field` and
+`rejectedValue` moved to the front). Without the net this would have reached the deployed service
+unnoticed. `FieldErrorMixin` restores the old order.
+
+On Boot 4.1.2 the net caught three more:
+- **`submittedOn` broke.** Jackson 3 writes `java.sql.Date` as a timestamp
+  (`"2026-11-05T23:00:00.000+00:00"`) instead of `yyyy-MM-dd`, and that's the wrong day outside
+  UTC. The talks spec fixes this format and talks is claimed, so it would have cost harness checks.
+  `WireFormatTest` caught it.
+- **Four properties were silently ignored.** Boot 4 renamed `server.error.include-message`,
+  `include-binding-errors`, `server.servlet.encoding.force` and `spring.jackson.parser.*`. The plan
+  review had predicted two. Found from Boot's metadata, guarded by `WireFormatTest`.
+- **Error responses lost `;charset=UTF-8`.** Caught by the `snapshot-api.sh` diff, not by the
+  unit tests, which only pinned a 200. Fixed in `WebConfig` and pinned by a new
+  `WireFormatTest.errorJsonIsUtf8`.
+
+Merging `main` (coverage ratchet, PR #8) into the Boot 4 branch turned up two more bugs:
+- **The ratchet would have measured nothing.** The Mockito fix had set surefire's `<argLine>`,
+  which replaces the JaCoCo agent's. Found by reading the merged pom; fixed with `@{argLine}`.
+- **`line-coverage.sh` overstated coverage.** It summed `jacoco.csv` rows, and those count a line
+  twice when it opens an anonymous class (`WebConfig`). The script said 0.773 while the gate
+  measured 0.772, so the floor the script recommended failed the build. The script now reads the
+  report-wide total from `jacoco.xml`, the same number the gate uses.
+
 ## 3. Claim log
 
 | Feature | Claimed or skipped | Tick | Evidence before claiming |
@@ -88,6 +130,7 @@ together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: upda
 | Talks | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–6 OK |
 | Ratings | claimed (base feature) | 0 | Shipped; then verified by `workflow/plans/done/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
 | Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
+| Spring Boot 4 | not yet claimed | TODO(human): tick when claimed | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. TODO(human): after deploy, the plan's post-deploy checklist (harness base checks OK over ≥ 5 ticks) |
 | Acceptance | claimed | 148 | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16; `/pre-claim` all 7 items pass (deploy `50ea65c` live, 6/6 Hurl files green against our URL, 18/18 checks of claimed features OK at tick 147). After the claim: acceptance check-1 to check-5 all OK at tick 150, no bleed. No check failed on D5, D6 or D7 (the harness doesn't say which rules its checks exercise) |
 
 ## 4. What the harness caught that we didn't
@@ -119,6 +162,9 @@ current status, not the timeline.
 
 ## 5. Reusable artifacts
 
+- **CI clean build** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
+  the same clean Maven verification on PRs and main, with independent main deployment.
+
 - **Plan skill** [`.claude/skills/make-plan/`](.claude/skills/make-plan/SKILL.md): restart-proof
   plans with a decisions list for the human.
 - **Execution skill** [`.claude/skills/execute-plan/`](.claude/skills/execute-plan/SKILL.md): phase
@@ -143,6 +189,15 @@ current status, not the timeline.
   checker or client sees behaviour the spec didn't pin down.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
+- **API snapshot** [`workflow/scripts/snapshot-api.sh`](workflow/scripts/snapshot-api.sh)
+  `<base-url> <out-file>`. It sends ~55 fixed requests and normalises the answers (ids, e-mails,
+  timestamp digits, framework messages), so two runs on the same build diff empty. Diff a snapshot
+  from before any upgrade or refactor against one from after it, and you see every user-visible
+  change. It was written for the Boot 4 upgrade; its first baseline is
+  `workflow/plans/done/spring-boot-4.baseline.txt`.
+- **Wire-format net** [`WireFormatTest`](src/test/java/no/scienta/cfp/WireFormatTest.java): asserts
+  on raw response strings, so it survives a JSON library swap. It was checked by breaking each
+  guarded behaviour with a property (8 of 8 caught).
 
 ## 6. One thing we'd do differently
 

@@ -89,3 +89,15 @@ Non-negotiables, in case you read nothing else:
 - All changes via a feature branch and a PR made by a person in the GitHub UI. Use `gh` only for
   issues, never for PRs.
 - Merging to `main` deploys. Never claim a feature or say it's done without checkable evidence.
+
+**Stack changed (spring-boot-4 branch, 2026-11-06).** The organisers' "as shipped: Java 11, Spring
+Boot 2.7" above is history. The service now runs Java 25 and Spring Boot 4.1.2 (Spring Framework 7):
+- Jackson 3 (`tools.jackson.*`); annotations are still `com.fasterxml.jackson.annotation`.
+- Testcontainers 2 (`org.testcontainers.postgresql.PostgreSQLContainer`).
+- Boot 4 property names (`spring.web.error.*`, `spring.servlet.encoding.*`, `spring.jackson.json.read.*`).
+  Boot ignores old names silently.
+- Build with a JDK 25 (`JAVA_HOME` in `LOCAL.md`).
+- Before and after any further framework change, `WireFormatTest` must pass unchanged, and
+  `workflow/scripts/snapshot-api.sh` must show no diff.
+
+Details: `workflow/adrs/0002-spring-boot-4-java-25.md`.
