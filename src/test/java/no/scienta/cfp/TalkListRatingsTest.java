@@ -43,24 +43,24 @@ class TalkListRatingsTest {
         String speaker = idOf(send("POST", "/speakers",
                 "{\"name\":\"Grace Hopper\",\"email\":\"grace-" + UUID.randomUUID() + "@example.com\"}"));
         String unrated = newTalk(speaker);
-        String halfUp = newTalk(speaker);
+        String fourRatings = newTalk(speaker);
         String top = newTalk(speaker);
-        rate(halfUp, 1, 4);
-        rate(halfUp, 2, 4);
-        rate(halfUp, 3, 4);
-        rate(halfUp, 4, 5);
+        rate(fourRatings, 1, 4);
+        rate(fourRatings, 2, 4);
+        rate(fourRatings, 3, 4);
+        rate(fourRatings, 4, 5);
         rate(top, 1, 5);
 
         for (String path : Arrays.asList("/talks?speakerId=" + speaker, "/speakers/" + speaker + "/talks")) {
             String body = send("GET", path, null).body();
-            assertEquals(Arrays.asList(unrated, halfUp, top), ids(body), body);
+            assertEquals(Arrays.asList(unrated, fourRatings, top), ids(body), body);
             assertRatings(body, unrated, "null", 0);
-            assertRatings(body, halfUp, "4.3", 4);
+            assertRatings(body, fourRatings, "4.25", 4);
             assertRatings(body, top, "5.0", 1);
         }
 
         String ranked = send("GET", "/talks?sort=rating&speakerId=" + speaker, null).body();
-        assertEquals(Arrays.asList(top, halfUp, unrated), ids(ranked), ranked);
+        assertEquals(Arrays.asList(top, fourRatings, unrated), ids(ranked), ranked);
     }
 
     private static void assertRatings(String list, String talk, String average, int count) {

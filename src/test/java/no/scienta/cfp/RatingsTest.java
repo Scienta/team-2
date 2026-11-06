@@ -106,19 +106,19 @@ class RatingsTest {
 
     private static void assertAggregates(JsonNode rated, JsonNode unrated) {
         assertEquals(3, rated.get("ratingCount").asInt(), rated.toString());
-        assertEquals(4.3, rated.get("averageRating").asDouble(), rated.toString());
+        assertEquals(4.33, rated.get("averageRating").asDouble(), rated.toString());
         assertEquals(0, unrated.get("ratingCount").asInt(), unrated.toString());
         assertNullField(unrated, "averageRating");
     }
 
     @Test
-    void averageRoundsHalfUp() throws Exception {
+    void averageHasTwoDecimals() throws Exception {
         long talk = newTalk(newSpeaker());
         int[] scores = {4, 4, 4, 5};
         for (int r = 0; r < scores.length; r++) {
             assertEquals(200, rate(talk, r + 1, "{\"score\":" + scores[r] + "}").statusCode());
         }
-        assertEquals(4.3, getJson("/talks/" + talk).get("averageRating").asDouble());
+        assertEquals(4.25, getJson("/talks/" + talk).get("averageRating").asDouble());
     }
 
     @Test
@@ -136,8 +136,8 @@ class RatingsTest {
         rateAll(e, 5);
         List<Long> ours = Arrays.asList(a, b, c, d, e);
 
-        assertEquals(Arrays.asList(e, a, c, b, d), idsInOrder(getJson("/talks?sort=rating"), ours));
-        assertEquals(Arrays.asList(a, c, b), ids(getJson("/talks?sort=rating&speakerId=" + s1)));
+        assertEquals(Arrays.asList(e, b, a, c, d), idsInOrder(getJson("/talks?sort=rating"), ours));
+        assertEquals(Arrays.asList(b, a, c), ids(getJson("/talks?sort=rating&speakerId=" + s1)));
         assertEquals(Arrays.asList(e, d), ids(getJson("/talks?sort=rating&speakerId=" + s2)));
         assertEquals(Arrays.asList(a, b, c, d, e), idsInOrder(getJson("/talks"), ours));
     }
