@@ -47,12 +47,14 @@
 
 All in `workflow/specs/ratings-cr.md`; each took the recommended option as an agent default.
 
-- **D1.** Rounding: exact `BigDecimal` HALF_EVEN, scale 2. **Ask the PO** (visible).
-- **D2.** Ties at the top/bottom: leave out exactly one max and one min. **Ask the PO** (visible).
-- **D3.** Threshold counts current ratings (one per reviewer). **Ask the PO** (visible).
-- **D4.** JSON stays a `Double` number (`4.0`, `4.25`), no `4.00` padding. **Ask the PO** (visible; fallback: scaled `BigDecimal`).
-- **D5.** Ranking compares the rounded average, then count, then oldest. **Ask the PO** (visible).
-- **D6.** 2-decimal rounding also below 5 ratings. **Ask the PO** (visible).
+Riskiest first after D1.
+
+- **D1.** Rounding: exact `BigDecimal` HALF_EVEN, scale 2 (not Postgres `ROUND`, which gives 3.13). **Ask the PO** (visible). Fallback: none needed, the request dictates it.
+- **D6.** 2-decimal rounding also below 5 ratings: this changes values the base spec claimed at tick 0 (`ratings.md:18`, `4.3` becomes `4.25`), so it is the riskiest default. **Ask the PO** (visible). Fallback: b) 1 decimal half-up below 5 (keep the old `calculateAverage` for `n < 5`).
+- **D2.** Ties at the top/bottom: leave out exactly one max and one min. **Ask the PO** (visible). Fallback: b) leave out every reviewer with the top or bottom score.
+- **D5.** Ranking compares the rounded average, then count, then oldest. **Ask the PO** (visible). Fallback: b) sort on the unrounded average.
+- **D4.** JSON stays a `Double` number (`4.0`, `4.25`), no `4.00` padding. **Ask the PO** (visible). Fallback: scaled `BigDecimal`.
+- **D3.** Threshold counts current ratings (one per reviewer). **Ask the PO** (visible). Fallback: none needed, one rating per reviewer is the base spec.
 - **D7.** `/admin/stats` unchanged rule (floor 1 decimal of the new averages).
 - **D8.** `/admin/talks.csv` prints the new average (`4,25`).
 - **D9.** Acceptance's 2-rating minimum unchanged.
@@ -73,6 +75,7 @@ All in `workflow/specs/ratings-cr.md`; each took the recommended option as an ag
      `3.12`; `1,3,3,3,3,3,3,4,5,5` (counted sum 27, `3.375`) gives `3.38`.
    - non-tie rounding at 6 ratings: `1,2,2,3,3,5` (counted 2,2,3,3 = 2.5) gives `2.5`;
      `1,2,2,2,3,5` (counted 9/4 = 2.25) gives `2.25`; at 7 ratings `1,4,4,4,4,5,5` (21/5 = 4.2) gives `4.2`.
+   - non-tie round-up: `4,5,5` (4.666..) gives `4.67`; round-down `4,4,5` gives `4.33` (above).
 
 Check: `./mvnw test -Dtest=UtilsTest` green, then `./mvnw package` green (the function is unused
 yet, coverage of `Utils` goes up). Commit: `feat: Trimmed, half-even rating average`.
@@ -80,19 +83,25 @@ yet, coverage of `Utils` goes up). Commit: `feat: Trimmed, half-even rating aver
 ## Phase 2: Wire it in
 
 1. `RatingDao.stats` and `statsFor`: add `MAX(score) AS hi, MIN(score) AS lo` (still one query each;
-   `COALESCE(..., 0)` in `stats` for a talk without ratings). Update their javadoc (`{cnt, total, hi, lo}`).
-2. `ConferenceService.applyRatings`: read `hi`/`lo` and call `Utils.ratingAverage`; delete
+   no `COALESCE`: with no ratings they are `null` and unused, as `count == 0` gives `null`). Update
+   their javadoc (`{cnt, total, hi, lo}`).
+2. `ConferenceService.applyRatings`: read `hi`/`lo` as `((Number) ...).intValue()` like `cnt` (only
+   when `count > 0`) and call `Utils.ratingAverage`; delete
    `calculateAverage` and its commented-out line. Leave `listTalks`, stats and the CSV alone.
    Keep `RoundingMode`/`BigDecimal` imports only if still used (no unused-import warnings).
 3. Fix the broken assertions listed in Context (RatingsTest x3, TalkListRatingsTest).
 4. New HTTP tests in a new class `RatingsTrimTest` (copy `RatingsTest`'s setup and helpers; its own
-   database), each on its own talks:
+   database). **Every test calls `newSpeaker()` for its own speaker** (at most 3 talks per speaker,
+   409 at the 4th, `ConferenceService.submitTalk`) and works on its own talks:
    - `fiveRatingsLeaveOutOneHighestAndOneLowest`: `1,5,5,5,5` shows `5.0`, `ratingCount` 5, on
      `GET /talks/{id}`, `GET /talks`, `GET /talks?speakerId=`, `GET /speakers/{id}/talks`.
    - `fourRatingsCountEveryScore`: `1,4,4,4` shows `3.25`, count 4; a fifth rating `4` then shows
      `4.0`, count 5.
    - `reRatingDoesNotReachTheThreshold`: 4 reviewers, one re-rates twice: count stays 4, untrimmed (D3).
    - `halfEvenAtTheThirdDecimal`: the two 10-rating sets from Phase 1 show `3.12` and `3.38`.
+   - `wireTextHasTheRoundedNumber`: pin the raw JSON text, not `asDouble()` (which can't tell `3.12`
+     from `3.120` or `4.0` from `4.00`): `"averageRating":3.12,`, `"averageRating":3.38,` and
+     `"averageRating":4.0,` (from `1,4,4,4,4`) with a regex as in `TalkListRatingsTest.assertRatings`.
    - `rankingUsesTheTrimmedAverage`: talk X `1,5,5,5,5` (trimmed 5.0, untrimmed 4.2) and talk Y
      `4,4,4,4,5` (trimmed 4.0, untrimmed 4.2) and talk Z `5,5,5,5` (5.0, 4 ratings): `sort=rating`
      on their speaker gives `X, Z, Y` (X and Z tie on 5.0, X has more ratings) (D5).
@@ -103,15 +112,21 @@ yet, coverage of `Utils` goes up). Commit: `feat: Trimmed, half-even rating aver
 
 Check: `./mvnw package` green, no new warnings, coverage not below the floor;
 `git diff origin/main -- src/test/java/no/scienta/cfp/WireFormatTest.java` empty.
+`workflow/scripts/snapshot-api.sh` against the service before and after the change shows no diff
+(its only rated talk has `4, 3`, 3.5 either way).
 Commit: `feat: Trimmed 2-decimal average on talks`.
 
 ## Phase 3: Hurl and prod-like run
 
-1. Fix `examples/ratings-rules.hurl` (the 4.25/4.33 ranking flip and every 1-decimal value),
-   `examples/ratings-edge.hurl` (`4.25`), and the comment in `examples/ratings.hurl` ("rounded to 1
-   decimal"). Re-run the grep from Context.
-2. New `examples/ratings-cr.hurl`: one speaker, talks for the Phase 2 cases (5-rating trim, 4-rating
-   no trim, half-even `3.12`/`3.38`, ranking `X, Z, Y`), each asserting `averageRating` and
+1. Fix `examples/ratings-rules.hurl`: lines ~273-280 were the "same rounded average, more ratings
+   first" tie, which 4.33/4.25 no longer is. Rewrite that block as P `4,4,5` vs Q `1,4,4,5,5` (both
+   4.33; Q first on `ratingCount`), fix the talk titles (~211 "Three reviewers, 4.33", ~222 "Four
+   reviewers, 4.25") and every 1-decimal value. `examples/ratings-edge.hurl`: comment ~25 and
+   `4.25`. The comment in `examples/ratings.hurl` ("rounded to 1 decimal"). Re-run the grep from Context.
+2. New `examples/ratings-cr.hurl`, **one speaker per case, at most 3 talks each** (409 at the 4th):
+   speaker A: 5-rating trim (`1,5,5,5,5` 5.0) and 4-rating no trim (`1,4,4,4` 3.25); speaker B:
+   half-even `3.12` and `3.38` (10 reviewers each, ids 1..10); speaker C: X, Y, Z with
+   `GET /talks?speakerId=<C>&sort=rating` giving `X, Z, Y`. Each asserts `averageRating` and
    `ratingCount`. Unique names/emails per run (as the other examples do).
 3. Prod-like local run: `APP_PORT=18039 PG_PORT=15039 COMPOSE_PROJECT_NAME=cfp-39
    workflow/scripts/local-rollout.sh`, then `docker compose -p cfp-39 --profile app down -v`.
@@ -130,9 +145,19 @@ Commit: `test: Hurl examples for the ratings change request`.
 4. `REVIEW.md` is not edited on this branch: the §1/§2/§3-draft/§5 rows go in the PR description
    under "For REVIEW.md".
 
-Check: `./mvnw package` green. Commit: `docs: Ratings change request`.
+Check: `./mvnw package` green; `grep -n "1 decimal" docs/api.md examples/*.hurl` gives no hits.
+Commit: `docs: Ratings change request`.
 
 ## Review response
 
 | Finding | Response |
 |---|---|
+| B1 Hurl speaker gets 7 talks, 409 at the 4th | Phase 3 step 2: one speaker per case (A, B, C), at most 3 talks each; Phase 2 step 4: `newSpeaker()` in every `RatingsTrimTest` test |
+| S1 Fallbacks for visible decisions | Decisions list: fallback per decision, D6 moved right after D1 as riskiest, D1/D3 "none needed" |
+| S2 `gh pr create` vs main's rules | The orchestrator creates the PR on the user's request; this branch only pushes and writes the PR body |
+| S3 `asDouble()` can't pin the wire text | Phase 2 step 4: `wireTextHasTheRoundedNumber` regex on `3.12`, `3.38`, `4.0` |
+| M1 No COALESCE; read hi/lo as `Number` | Phase 2 steps 1 and 2 |
+| M2 ratings-rules tie block and titles | Phase 3 step 1: P/Q rewrite, titles ~211/~222, ratings-edge ~25 |
+| M3 Non-tie round-up case | Phase 1: `4,5,5` gives `4.67` |
+| M4 snapshot-api.sh no diff | Phase 2 Check |
+| M6 No "1 decimal" left | Phase 4 Check grep |
