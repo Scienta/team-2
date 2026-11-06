@@ -205,10 +205,20 @@ class RatingsTest {
         assertEquals(404, rate(MISSING_TALK, 1, "{\"score\":3}").statusCode());
     }
 
-    // E1 (todo/ratings_plan.md): today the score is validated before the talk's existence
+    // E1 (todo/ratings_plan.md, approved): a missing talk gives 404 before the score is validated
     @Test
     void invalidScoreOnMissingTalk() throws Exception {
-        assertEquals(400, rate(MISSING_TALK, 1, "{\"score\":6}").statusCode());
+        assertEquals(404, rate(MISSING_TALK, 1, "{\"score\":6}").statusCode());
+    }
+
+    @Test
+    void errorPrecedence() throws Exception {
+        long talk = newTalk(newSpeaker());
+        assertEquals(400, rate(MISSING_TALK, 0, "{\"score\":6}").statusCode(), "reviewer first");
+        assertEquals(404, rate(MISSING_TALK, 1, "{\"score\":6}").statusCode(), "talk before score");
+        assertEquals(404, rate(MISSING_TALK, 1, "{}").statusCode(), "talk before missing score");
+        assertEquals(400, rate(talk, 1, "{\"score\":6}").statusCode(), "score on an existing talk");
+        assertEquals(400, rate(MISSING_TALK, 1, "not json").statusCode(), "binding first");
     }
 
     @Test
