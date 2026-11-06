@@ -2,7 +2,7 @@
 
 - [x] Phase 1: Validation on `POST` and `PUT /speakers`, with Java tests (rejected cases, and the
   harness's own bodies still accepted)
-- [ ] Phase 2: Hurl checks in `examples/speakers-rules.hurl`, run twice via `local-rollout.sh`
+- [x] Phase 2: Hurl checks in `examples/speakers-rules.hurl`, run twice via `local-rollout.sh`
 - [ ] Phase 3: Decisions table in the spec, `docs/`, `.claude/rules/project.md`, `REVIEW.md` §2; plan to done
 
 ## Context (read this after a restart)

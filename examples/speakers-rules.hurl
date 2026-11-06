@@ -88,6 +88,77 @@ POST {{base_url}}/speakers
 }
 HTTP 400
 
+# D1: an email that isn't one: 400 "invalid email" (one @, no spaces, a dot with text on both sides after it)
+POST {{base_url}}/speakers
+{
+  "name": "Ada Hamilton 6d06",
+  "email": "not-an-email-{{newUuid}}"
+}
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "invalid email"
+
+POST {{base_url}}/speakers
+{
+  "name": "Ada Hamilton 6d06",
+  "email": "@example.test"
+}
+HTTP 400
+
+POST {{base_url}}/speakers
+{
+  "name": "Ada Hamilton 6d06",
+  "email": "x-{{newUuid}}@localhost"
+}
+HTTP 400
+
+POST {{base_url}}/speakers
+{
+  "name": "Ada Hamilton 6d06",
+  "email": "x {{newUuid}}@example.test"
+}
+HTTP 400
+
+# D2: a name or email that isn't a JSON string is 400, not stored as text
+POST {{base_url}}/speakers
+{
+  "name": 5,
+  "email": "x-{{newUuid}}@example.test"
+}
+HTTP 400
+
+POST {{base_url}}/speakers
+{
+  "name": true,
+  "email": "x-{{newUuid}}@example.test"
+}
+HTTP 400
+
+POST {{base_url}}/speakers
+{
+  "name": "Ada Hamilton 6d06",
+  "email": 5
+}
+HTTP 400
+
+# D4: a name of only a no-break space is blank too: 400
+POST {{base_url}}/speakers
+{
+  "name": " ",
+  "email": "x-{{newUuid}}@example.test"
+}
+HTTP 400
+
+# D1: spaces around a real email are fine; it's stored as typed
+POST {{base_url}}/speakers
+{
+  "name": "Ada Hamilton 6d06",
+  "email": " x-{{newUuid}}@Example.TEST "
+}
+HTTP 201
+[Asserts]
+jsonpath "$.email" matches /^ x-.*@Example\.TEST $/
+
 # The bio is optional, also as an explicit null; trailing slash on POST works
 POST {{base_url}}/speakers/
 {
