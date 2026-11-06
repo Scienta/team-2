@@ -71,7 +71,7 @@ Undocumented admin lookup: speakers whose name contains `q` (case-insensitive), 
 | `format` | `LIGHTNING_10` (10 min), `LIGHTNING_20` (20), `PRESENTATION` (45), `WORKSHOP` (120) |
 | `level` | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` |
 | `durationMinutes` | Derived from `format`; clients can't set it |
-| `status` | Always `SUBMITTED` today |
+| `status` | `SUBMITTED` when new; then `ACCEPTED`, `REJECTED`, `WAITLISTED` or `WITHDRAWN` (see Acceptance) |
 | `submittedAt` / `submittedOn` | Submission instant (UTC) and its UTC date |
 | `averageRating` | Mean score to 1 decimal, rounded half up (4.25 → 4.3); `null` with no ratings |
 | `ratingCount` | Number of reviewers who rated it |
@@ -110,6 +110,42 @@ talk lists by speaker show only the talks where they are the main speaker.
 
 Returns the talk object. Talk exists (404); speaker exists (404); is a co-speaker of this talk (404).
 Someone removed and added again goes last.
+
+## Acceptance
+
+A talk's `status` follows a state machine (`workflow/specs/acceptance.md`). Anything not listed,
+including repeating the current status, is 409 and changes nothing:
+
+| From | Allowed to |
+|---|---|
+| `SUBMITTED` | `ACCEPTED` (needs 2+ reviewers), `REJECTED`, `WAITLISTED`, `WITHDRAWN` |
+| `WAITLISTED` | `ACCEPTED` (needs 2+ reviewers), `REJECTED`, `WITHDRAWN` |
+| `ACCEPTED` | `WITHDRAWN` |
+| `REJECTED`, `WITHDRAWN` | nothing |
+
+Talks of every status stay in all lists.
+
+### `PUT /talks/{id}/status` → 200
+
+```json
+{"status": "ACCEPTED"}
+```
+
+Checks, in this order: talk exists (404); `status` is `ACCEPTED`, `REJECTED` or `WAITLISTED` (400);
+the change is allowed (409); `ACCEPTED` needs ratings from at least 2 reviewers (409). Returns the
+talk object.
+
+### `POST /talks/{id}/withdraw` → 200
+
+```json
+{"speakerId": 3}
+```
+
+Checks, in this order: talk exists (404); `speakerId` is a whole number ≥ 1 (400); it's the talk's
+main speaker, not a co-speaker or anyone else (403); the talk isn't `REJECTED` or `WITHDRAWN` (409).
+Returns the talk object with `status` `WITHDRAWN`.
+
+Both endpoints: no body, invalid JSON or a JSON array is 400, a non-JSON `Content-Type` 415.
 
 ## Ratings
 
