@@ -15,8 +15,8 @@ binding. What follows is how this team works; where it conflicts with those fact
 4. Then execute the plan phase by phase
 5. Ensure "No Broken Windows" - all tests pass before finishing
 
-**Keep `REVIEW.md` current.** After a feature is merged or claimed, append its row to `REVIEW.md`
-§3 (claim log), and add to §4 if the harness found something we missed.
+**Keep `REVIEW.md` current**, in the same commit as the work: `.claude/rules/review-log.md` says
+which event goes in which section, and why it decides whether we can win.
 
 ## Reading List
 

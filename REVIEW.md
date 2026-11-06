@@ -39,6 +39,10 @@ The whole flow on one screen: [`workflow/README.md`](workflow/README.md). Team r
 [`.claude/skills/`](.claude/skills/). Review agents: [`.claude/agents/`](.claude/agents/). ADRs:
 [`workflow/adrs/`](workflow/adrs/).
 
+This file is written as we go: [`.claude/rules/review-log.md`](.claude/rules/review-log.md) maps
+each event (review caught a bug, claim, harness surprise, new artifact) to its section, and
+`/execute-plan` ends by updating it and running `workflow/scripts/check-review.sh`.
+
 ## 2. How we reviewed agent output
 
 - **Plans** were reviewed by a second agent before any code was written, against the spec, the code
