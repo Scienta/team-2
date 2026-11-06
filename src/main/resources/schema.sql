@@ -66,3 +66,15 @@ CREATE TABLE IF NOT EXISTS workshop_registration (
     email_key TEXT NOT NULL,
     UNIQUE (talk_id, email_key)
 );
+
+-- 2026-11 programme scheduling. programme_slot exists to be locked: one row per slot serialises the three rooms.
+CREATE TABLE IF NOT EXISTS programme_slot (
+    slot TEXT PRIMARY KEY
+);
+INSERT INTO programme_slot (slot) VALUES ('S1'), ('S2'), ('S3'), ('S4'), ('S5') ON CONFLICT DO NOTHING;
+CREATE TABLE IF NOT EXISTS programme_entry (
+    room    TEXT    NOT NULL CHECK (room IN ('R1', 'R2', 'R3')),
+    slot    TEXT    NOT NULL REFERENCES programme_slot (slot),
+    talk_id INTEGER NOT NULL UNIQUE,
+    PRIMARY KEY (room, slot)
+);
