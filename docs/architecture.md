@@ -23,10 +23,10 @@ HTTP ──> Controllers ──> ConferenceService ──> DAOs ──> Postgres
 
 | Layer | Classes | Role |
 |---|---|---|
-| Controllers | `SpeakerController`, `TalkController`, `WorkshopController`, `ReportController`, `HealthController` | Map routes to service calls. Little logic of their own. |
-| Service | `ConferenceService`, `WorkshopService` | All business rules: validation, the submission limit, durations, rating averages, sorting, statistics; workshop registration in its own service. Throws `ResponseStatusException` for 4xx. |
-| DAOs | `SpeakerDao`, `TalkDao`, `RatingDao`, `RegistrationDao` | SQL via `JdbcTemplate`. Speakers come back as `Map<String, Object>`, talks as `TalkDto`. |
-| DTOs / forms | `SpeakerForm`, `TalkForm`, `TalkDto`, `RegistrationDto` | Request and response bodies. `SpeakerForm` has bean-validation annotations; `TalkForm` is validated by hand in the service. |
+| Controllers | `SpeakerController`, `TalkController`, `WorkshopController`, `ProgrammeController`, `ReportController`, `HealthController` | Map routes to service calls. Little logic of their own. |
+| Service | `ConferenceService`, `WorkshopService`, `ProgrammeService` | All business rules: validation, the submission limit, durations, rating averages, sorting, statistics; workshop registration and programme scheduling in their own services. The scheduling rules themselves are a pure function, `SchedulingRules`, with the venue in `Venue`. Throws `ResponseStatusException` for 4xx. |
+| DAOs | `SpeakerDao`, `TalkDao`, `RatingDao`, `RegistrationDao`, `ProgrammeDao` | SQL via `JdbcTemplate`. Speakers come back as `Map<String, Object>`, talks as `TalkDto`. |
+| DTOs / forms | `SpeakerForm`, `TalkForm`, `TalkDto`, `RegistrationDto`, `ProgrammeEntry` | Request and response bodies. `SpeakerForm` has bean-validation annotations; `TalkForm` is validated by hand in the service. |
 | Support | `Utils`, `NotificationService`, `VersionInfoContributor` | Date formatting, CSV escaping, rounding; e-mail stub (logs only, `cfp.mail.enabled=false`); versions on `/actuator/info`. |
 | Web config | `WebConfig`, `FieldErrorMixin` | `UrlHandlerFilter` strips a trailing slash before routing (the speakers spec requires `/speakers/` to work; Spring 6 stopped matching it). A second filter forces `charset=UTF-8` on error bodies too (Tomcat 11 drops it on the `/error` forward). The mixin keeps Boot 2.7's key order in the entries of a 400's `errors` array. |
 
@@ -62,6 +62,15 @@ takes the same row lock with `TalkDao.lock`, re-reads the status in a separate s
 registrations, and inserts with `ON CONFLICT (talk_id, email_key) DO NOTHING`. Registrations and
 withdrawals on one workshop wait for each other, so a rush never gets past 20 and nobody gets in after
 a withdrawal (`WorkshopRegistrationTest.aRush*`, `aRegistrationWaitingForTheLockSeesTheWithdrawal`).
+
+**Put a talk on the programme** (`PUT /programme/{room}/{slot}`): in one transaction,
+`ProgrammeService` parses the room and slot and validates `talkId`, then locks the talk row
+(`TalkDao.lock`) and then the slot row (`ProgrammeDao.lockSlot`), always in that order. Under the locks
+it reads the talk, where the talk is now, whether the place is taken and the talks in the slot's other
+rooms, and `SchedulingRules.decide` returns Ok (insert), AlreadyHere (200, no change) or a Violation
+(409). The slot lock makes the three rooms of a slot wait for each other (taken, speaker clash); the
+talk lock makes the same talk going into two slots wait. `DELETE` locks only the slot. The primary key
+and `UNIQUE (talk_id)` are a backstop: a broken lock shows as a 500 (`ProgrammeTest.concurrent*`).
 
 **Read a talk**: `TalkDao` loads the row, then `ConferenceService.addRatings` adds `ratingCount` and
 `averageRating` from `RatingDao.stats`, or `RatingDao.statsFor` (one query for the whole list) for lists.

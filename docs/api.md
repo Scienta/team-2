@@ -177,6 +177,39 @@ No body, invalid JSON or a JSON array is 400, a non-JSON `Content-Type` 415.
 The registrations in the order they registered, `[]` when none. A workshop that was withdrawn keeps
 its list. A talk that doesn't exist or isn't a `WORKSHOP` is 404.
 
+## Programme scheduling
+
+The venue is fixed: rooms `R1`, `R2`, `R3`, and slots `S1` 09:00–10:00, `S2` 10:15–11:15, `S3`
+11:30–12:30, `S4` 13:30–15:30 (the long slot), `S5` 15:45–16:45, the same in every room. Room and slot
+names are matched exactly: `r1`, `R4` or `S6` is 404 on every method. The rules are checked when a talk
+is put on the programme; if the talk changes afterwards (withdrawn, co-speakers), it stays where it is.
+
+The Entry: `{"room": "R1", "slot": "S2", "start": "10:15", "end": "11:15", "talkId": 7}`.
+
+### `PUT /programme/{room}/{slot}` → 200
+
+```json
+{"talkId": 7}
+```
+
+Returns the Entry. Checks, in this order: room and slot (404); `talkId` is a whole number ≥ 1 (400; a
+string, a decimal or `null` is 400); the talk exists (400 "talk not found"); then, all 409 with the
+reason in `message`: the talk is `ACCEPTED`; a `WORKSHOP` goes only in `S4`; the talk isn't already
+somewhere else on the programme (if it's already in this very place, the answer is 200 and nothing
+changes); the place is free; none of its speakers (main speaker and co-speakers) is in another room in
+the same slot.
+
+No body, invalid JSON or a JSON array is 400, a non-JSON `Content-Type` 415, before any other check.
+
+### `GET /programme/{room}/{slot}` → 200
+
+The Entry, or 404 when nothing is in that room and slot.
+
+### `DELETE /programme/{room}/{slot}` → 204
+
+Takes the talk out, no body. 404 when nothing is in that room and slot. A talk taken out can go
+somewhere else.
+
 ## Ratings
 
 ### `PUT /talks/{id}/ratings/{reviewerId}` → 200

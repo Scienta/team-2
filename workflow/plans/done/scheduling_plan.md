@@ -6,7 +6,7 @@
 - [x] Phase 3: `DELETE /programme/{room}/{slot}` (D11, D12, D18)
 - [x] Phase 4: Concurrency (D19): tests that assert the loser's reason, so removing either lock fails one; green 3 runs in a row; then offer the push. Without the slot lock: `concurrentPutsIntoOnePlace` gets a 500 (primary key) and `concurrentSharedSpeakerInOneSlot` two 200s. Without the talk lock: `concurrentPutsOfOneTalkIntoTwoPlaces` gets a 500 (`UNIQUE (talk_id)`). With both: 36/36 green 3 runs in a row. The `DuplicateKeyException` → 409 catch (step 0) is not added: with the locks it can't happen, and without them the tests already fail on the 500; see the note in step 0
 - [x] Phase 5: Hurl examples: a deploy-safe `examples/scheduling.hurl` and a local-only happy path. All 9 example files and `examples/local/` green twice in a row against a local service on Java 25; `programme_entry` empty afterwards
-- [ ] Phase 6: Update `docs/`, finish (update from `main`, coverage floor, `REVIEW.md`, plan to done)
+- [x] Phase 6: Update `docs/`, finish (update from `main`, coverage floor, `REVIEW.md`, plan to done). rebased onto `main` at `f3f2784` (programme-export CSV writer, startup warm-up, spec-based Hurl CI, workshop fixes); floor raised 0.836 → 0.862 (564/654)
 
 Revised after the review in `scheduling_plan_review.md` (B1, B2, S1 to S4, M1 to M12; see "Review
 response" at the end).
