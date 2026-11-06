@@ -3,7 +3,7 @@
 - [ ] Phase 0: Check the harness feedback for the `ratings` checks and revise the decisions below
 - [ ] Phase 1: Unit tests for the rating display format
 - [ ] Phase 2: Integration tests for current ratings behaviour (`RatingsTest`, all green)
-- [x] Phase 3: E1 error precedence (skipped: E1 rejected, 400 kept)
+- [ ] Phase 3: E1 error precedence, red then green (E1 approved: 404)
 - [ ] Phase 4: Hurl examples for the edge cases
 - [ ] Phase 5: Update `docs/`: record the known-issue decisions, and keep api, architecture and operations in line with the code
 
@@ -49,7 +49,7 @@ specs yet" and that each decision must be recorded there. The ratings-related en
 |---|---|---|
 | R6: the stats average rounds down, a talk's average rounds half up | The spec's rounding rule is about a talk's average. `/admin/stats` `averageRating` is a mean of talk means, not a talk, and isn't in any base spec. `/admin/talks.csv` uses the talk's own (half-up) value. | Not a ratings defect: record "kept, out of scope" |
 | R7: unknown `speakerId` gives `[]` on `/talks`, 404 on `/speakers/{id}/talks` | The spec doesn't say | E5: keep `[]`, record it |
-| R8: score validated before talk existence | The spec doesn't say | E1 rejected: keep 400 |
+| R8: score validated before talk existence | The spec doesn't say | E1 approved: 404 (Phase 3) |
 | D2: the `ratedAtDisplay` space becomes U+202F on JDK 20+ | The spec requires "exactly one ordinary space" | Guarded by a Phase 1 unit test |
 | D3: no FK from `rating.talk_id` | No endpoint deletes talks, so `rate`'s exists-check then upsert can't leave orphans | Record "no action"; revisit if a drip feature deletes or withdraws talks |
 | P1: one rating query per talk in every list | "Reviewing is busy" is about correctness, not latency | Out of scope; separate plan if the harness shows slow or 503 lists |
@@ -82,7 +82,7 @@ pins today's behaviour; only E1 proposes a change.
 
 | # | Request | Where it's decided | Today | Policy |
 |---|---|---|---|---|
-| E1 | Existing JSON object body with an invalid or missing `score` (e.g. `{"score":6}`, `{"score":"5"}`, `{}`), Content-Type `application/json`, **on a talk that doesn't exist** | `ConferenceService.rate` | 400 | **keep 400.** A 404 (talk lookup before score validation) was proposed. **Approval: REJECTED** (Daniel Bakkelund, 2026-11-06) |
+| E1 | Existing JSON object body with an invalid or missing `score` (e.g. `{"score":6}`, `{"score":"5"}`, `{}`), Content-Type `application/json`, **on a talk that doesn't exist** | `ConferenceService.rate` | 400 | **404** (the talk lookup before score validation). **Approval: APPROVED** (Daniel Bakkelund, 2026-11-06, reversing an earlier rejection) |
 | E2 | Valid body (`{"score":3}`) on a talk that doesn't exist | service | 404 | keep |
 | E3 | `reviewerId` `0`, `-1` (service), or `abc` (Spring path conversion), whatever the talk or body | service / Spring | 400 | keep; it's checked first |
 | E4a | No body, Content-Type `application/json` | Spring binding | 400 | keep |
@@ -192,7 +192,7 @@ Tests:
    gives 400 (binding comes first).
 10. **Missing talk:** `{"score":3}` gives 404 (E2). Also add a test named
     `invalidScoreOnMissingTalk` that asserts **today's value, 400** for `{"score":6}`, with a
-    comment pointing at E1 (rejected: 400 is the chosen policy).
+    comment pointing at E1. Phase 3 flips it to 404 (E1 approved).
 11. **Filter and sort:** `GET /talks?speakerId=999999` gives `[]` (E5), and `sort=foo` gives 400 (E6).
 12. **Concurrency, many reviewers:** on a fresh talk, send 40 parallel PUTs: reviewers 1 to 20,
     each sending its score twice at once (reviewers 1 to 10 score 3, 11 to 20 score 4). Every
@@ -235,7 +235,7 @@ and talk setup as in `examples/ratings.hurl` (at most 3 talks per speaker):
 - the 4, 4, 4, 5 average gives 4.3
 - invalid scores (`6`, `"5"`, `4.5`) give 400; reviewer `0` gives 400
 - a missing talk (id `2147483647`) with `{"score":3}` gives 404
-- a missing talk with `{"score":6}` gives 400 (E1 rejected)
+- a missing talk with `{"score":6}` gives 404 (E1 approved)
 - `sort=foo` gives 400
 
 Run it against a local service: `docker compose up -d`, `./mvnw package`,
@@ -246,7 +246,7 @@ Run it against a local service: `docker compose up -d`, `./mvnw package`,
 In `docs/known-issues.md`, record every ratings outcome from the "Docs and known issues" table:
 - R6: kept, out of scope
 - R7: kept (a filter gives `[]`)
-- R8: kept as a chosen policy (E1 rejected by Daniel Bakkelund, 2026-11-06): validation errors give 400 before the talk lookup
+- R8: fixed as a chosen policy (E1 approved by Daniel Bakkelund, 2026-11-06): a missing talk gives 404 before score validation; reviewerId and body-binding errors still give 400
 - D2: guarded by a unit test
 - D3: no action
 - P1: deferred
