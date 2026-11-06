@@ -68,6 +68,25 @@ class UtilsTest {
         return Utils.usShort(Date.from(Instant.parse(instant)));
     }
 
+    @Test
+    void isWellFormedEmail() {
+        assertTrue(Utils.isWellFormedEmail("x-0808034cb556@example.test"));
+        assertTrue(Utils.isWellFormedEmail("ada.lovelace+cfp@mail.example.co.uk"));
+        assertTrue(Utils.isWellFormedEmail(" \u00a0ADA@Example.com\t"));
+        assertFalse(Utils.isWellFormedEmail(null));
+        assertFalse(Utils.isWellFormedEmail(""));
+        assertFalse(Utils.isWellFormedEmail("@example.com"));
+        assertFalse(Utils.isWellFormedEmail("ada@localhost"));
+        assertFalse(Utils.isWellFormedEmail("a b@c.d"));
+        assertFalse(Utils.isWellFormedEmail("a@b@c.d"));
+    }
+
+    @Test
+    void trimSpaces() {
+        assertEquals("Ada", Utils.trimSpaces(" \u00a0\tAda\u2003\n"));
+        assertEquals("", Utils.trimSpaces("\u00a0"));
+    }
+
     @Disabled("flaky on Jenkins")
     @Test
     void nowIsCurrentTime() {

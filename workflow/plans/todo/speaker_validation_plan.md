@@ -1,6 +1,6 @@
 # Plan: Speakers reject an invalid e-mail and a non-string name (#33)
 
-- [ ] Phase 1: Validation on `POST` and `PUT /speakers`, with Java tests (rejected cases, and the
+- [x] Phase 1: Validation on `POST` and `PUT /speakers`, with Java tests (rejected cases, and the
   harness's own bodies still accepted)
 - [ ] Phase 2: Hurl checks in `examples/speakers-rules.hurl`, run twice via `local-rollout.sh`
 - [ ] Phase 3: Decisions table in the spec, `docs/`, `.claude/rules/project.md`, `REVIEW.md` §2; plan to done
@@ -44,7 +44,7 @@ Recorded in the spec's decisions table as "agent, pending Julian".
 - **D5. `PUT /speakers/{id}` (admin, not in the spec) gets the same name and e-mail rules.**
   Consistency: a typo fix shouldn't store what registration refuses. Its bio limit (1000, vs 500 on
   create) is out of scope and stays.
-- Out of scope: a non-string `bio` (still coerced), the SQL built from a string in `SpeakerDao.search`.
+- `PUT` rejects a non-string `bio` too (one helper reads all three fields); on `POST` a non-string `bio` is still coerced. Out of scope: the SQL built from a string in `SpeakerDao.search`.
 
 ## Phase 1: Validation and Java tests
 

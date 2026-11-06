@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 /**
  * Misc helpers.
@@ -17,6 +18,9 @@ public class Utils {
     public static final int MAX_TALKS = 5;
 
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+
+    private static final Pattern EDGE_WHITESPACE = Pattern.compile("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$");
+    private static final Pattern EMAIL = Pattern.compile("^[^\\s\\p{Z}@]+@[^\\s\\p{Z}@]+\\.[^\\s\\p{Z}@]+$");
 
     public static String today() {
         return new SimpleDateFormat("dd.MM.yyyy").format(new Date());
@@ -79,8 +83,19 @@ public class Utils {
         return s;
     }
 
-    public static boolean isValidEmail(String email) {
-        return email != null && email.contains("@") && email.indexOf('@') < email.lastIndexOf('.');
+    /**
+     * Strips whitespace at both ends, Unicode spaces such as the no-break space included (String.strip doesn't).
+     */
+    public static String trimSpaces(String s) {
+        return EDGE_WHITESPACE.matcher(s).replaceAll("");
+    }
+
+    /**
+     * One {@code @}, no whitespace, text before it and a dot with text on both sides after it, checked on the value
+     * trimmed at the edges. Shared by speakers and workshop registration (their specs' decisions tables).
+     */
+    public static boolean isWellFormedEmail(String email) {
+        return email != null && EMAIL.matcher(trimSpaces(email)).matches();
     }
 
     public static boolean isEmpty(String s) {

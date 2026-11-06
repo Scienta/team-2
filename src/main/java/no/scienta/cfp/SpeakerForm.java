@@ -3,15 +3,19 @@ package no.scienta.cfp;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import tools.jackson.databind.annotation.JsonDeserialize;
+
 /**
  * Request body for POST /speakers.
  */
 public class SpeakerForm {
 
     @NotBlank
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private String name;
 
     @NotBlank
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private String email;
 
     @Size(max = 500)

@@ -20,9 +20,7 @@ public class WorkshopService {
     // RFC 5321. It also keeps email_key small enough for its unique index: a much longer key is a database error.
     private static final int MAX_EMAIL_LENGTH = 254;
 
-    private static final Pattern EDGE_WHITESPACE = Pattern.compile("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$");
     private static final Pattern UNSTORABLE = Pattern.compile("[\\p{Cntrl}\\p{Cs}]");
-    private static final Pattern EMAIL = Pattern.compile("^[^\\s\\p{Z}@]+@[^\\s\\p{Z}@]+\\.[^\\s\\p{Z}@]+$");
 
     private final TalkDao talkDao;
     private final RegistrationDao registrationDao;
@@ -38,7 +36,7 @@ public class WorkshopService {
         String name = requireText(body, "name");
         String email = requireText(body, "email");
         String trimmedEmail = trim(email);
-        if (trimmedEmail.length() > MAX_EMAIL_LENGTH || !EMAIL.matcher(trimmedEmail).matches()) {
+        if (trimmedEmail.length() > MAX_EMAIL_LENGTH || !Utils.isWellFormedEmail(trimmedEmail)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid email");
         }
         talkDao.lock(workshopId);
@@ -87,6 +85,6 @@ public class WorkshopService {
     }
 
     private static String trim(String s) {
-        return EDGE_WHITESPACE.matcher(s).replaceAll("");
+        return Utils.trimSpaces(s);
     }
 }

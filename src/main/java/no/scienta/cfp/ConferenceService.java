@@ -57,6 +57,7 @@ public class ConferenceService {
 
     @Transactional
     public Map<String, Object> registerSpeaker(SpeakerForm form) {
+        requireSpeakerNameAndEmail(form.getName(), form.getEmail());
         if (speakerDao.emailTaken(form.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already registered");
         }
@@ -87,12 +88,7 @@ public class ConferenceService {
     @Transactional
     public Map<String, Object> updateSpeaker(long id, String name, String email, String bio) {
         Map<String, Object> existing = getSpeaker(id);
-        if (name == null || name.equals("")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
-        }
-        if (!Utils.isValidEmail(email)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid email");
-        }
+        requireSpeakerNameAndEmail(name, email);
         if (bio != null && bio.length() > 1000) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "bio too long");
         }
@@ -101,6 +97,16 @@ public class ConferenceService {
         }
         speakerDao.update(id, name, email, bio);
         return getSpeaker(id);
+    }
+
+    // workflow/specs/speakers.md D1, D3, D4: a real name and a real e-mail, on registration and on update
+    private static void requireSpeakerNameAndEmail(String name, String email) {
+        if (name == null || Utils.trimSpaces(name).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
+        }
+        if (!Utils.isWellFormedEmail(email)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid email");
+        }
     }
 
     public List<Map<String, Object>> searchSpeakers(String q) {
