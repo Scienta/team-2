@@ -43,6 +43,32 @@ jobs:
       - name: Clean build and all Maven tests
         run: ./mvnw -B clean verify
 
+  # The image we deploy, run against a Postgres that keeps its data, with every examples/*.hurl
+  # (our spec-based checks). Twice, with a restart in between: the files must re-run on old data,
+  # like the harness's checks do against production. Doesn't gate deploy (see the ci-clean-build plan).
+  hurl:
+    # Pinned: Hurl's .deb depends on libxml2, which ubuntu-latest no longer offers under that name.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      HURL_VERSION: "8.1.0"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Hurl
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/hurl.deb" "https://github.com/Orange-OpenSource/hurl/releases/download/$HURL_VERSION/hurl_${HURL_VERSION}_amd64.deb"
+          sudo apt-get install -y "$RUNNER_TEMP/hurl.deb"
+          hurl --version
+      - name: Prod-like rollout and the Hurl suite
+        run: workflow/scripts/local-rollout.sh
+      - name: Restart the app and run the suite again on the same data
+        run: |
+          docker compose --profile app restart app
+          workflow/scripts/local-rollout.sh
+      - name: App logs
+        if: ${{ failure() }}
+        run: docker compose --profile app logs --tail 300 app
+
   deploy:
     if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     # Serialize deployments only; tests must not delay a newer main deployment.
