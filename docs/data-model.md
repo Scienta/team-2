@@ -42,6 +42,17 @@ its data across deploys, so a changed `CREATE TABLE` won't alter an existing tab
 Primary key `(talk_id, reviewer_id)`: one rating per reviewer per talk, enforced by the upsert in
 `RatingDao.save`.
 
+## `talk_co_speaker`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `BIGSERIAL` | Primary key; gives the order the co-speakers were added in |
+| `talk_id` | `INTEGER NOT NULL` | No foreign key to `talk` |
+| `speaker_id` | `INTEGER NOT NULL` | No foreign key to `speaker` |
+
+Unique on `(talk_id, speaker_id)`. The limit of 2 per talk is enforced in `ConferenceService`, under
+a row lock on the talk.
+
 ## `vote` (legacy)
 
 `talk_id`, `voter`, `stars`. The 2019 voting system, replaced by `rating` in 2020. Unused by the

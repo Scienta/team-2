@@ -1,8 +1,8 @@
 # Plan: Co-speakers (drip feature)
 
 - [x] Phase 1: Schema, `coSpeakerIds` on every talk (`[]` for now), add and remove endpoints, `CoSpeakersTest`
-- [ ] Phase 2: Hurl example `examples/co-speakers.hurl`, run against a local service
-- [ ] Phase 3: Update `docs/` (api, data model, operations)
+- [x] Phase 2: Hurl example `examples/co-speakers.hurl`, run against a local service
+- [x] Phase 3: Update `docs/` (api, data model, operations)
 
 ## Context (read this after a restart)
 
@@ -62,3 +62,6 @@ the Docker image `ghcr.io/orange-opensource/hurl` works too.
 - `docs/api.md`: the field and both endpoints, with the decisions above
 - `docs/data-model.md`: the new table
 - `docs/operations.md`: add `CoSpeakersTest` to the list of test classes
+
+Result: all of `examples/*.hurl` pass against the `Dockerfile` image (Java 11). On a local JDK 20+,
+`ratings.hurl` fails on `ratedAtDisplay` (known issue D2), so check against the image, not a local jar.
