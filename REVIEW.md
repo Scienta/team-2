@@ -75,6 +75,18 @@ reorders the keys in each entry of a 400's `errors` array (`objectName`, `field`
 `rejectedValue` moved to the front). Without the net this would have reached the deployed service
 unnoticed. `FieldErrorMixin` restores the old order.
 
+On Boot 4.1.2 the net caught three more:
+- **`submittedOn` broke.** Jackson 3 writes `java.sql.Date` as a timestamp
+  (`"2026-11-05T23:00:00.000+00:00"`) instead of `yyyy-MM-dd`, and that's the wrong day outside
+  UTC. The talks spec fixes this format and talks is claimed, so it would have cost harness checks.
+  `WireFormatTest` caught it.
+- **Four properties were silently ignored.** Boot 4 renamed `server.error.include-message`,
+  `include-binding-errors`, `server.servlet.encoding.force` and `spring.jackson.parser.*`. The plan
+  review had predicted two. Found from Boot's metadata, guarded by `WireFormatTest`.
+- **Error responses lost `;charset=UTF-8`.** Caught by the `snapshot-api.sh` diff, not by the
+  unit tests, which only pinned a 200. Fixed in `WebConfig` and pinned by a new
+  `WireFormatTest.errorJsonIsUtf8`.
+
 ## 3. Claim log
 
 | Feature | Claimed or skipped | Tick | Evidence before claiming |

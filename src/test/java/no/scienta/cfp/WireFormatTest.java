@@ -77,6 +77,15 @@ class WireFormatTest {
         assertEquals("application/json;charset=UTF-8", res.headers().firstValue("Content-Type").orElse(""));
     }
 
+    // added after the Boot 4 snapshot diff: error bodies lost the charset there, and only 200s were pinned
+    @Test
+    void errorJsonIsUtf8() throws Exception {
+        for (HttpResponse<String> res : Arrays.asList(send("GET", "/talks/999999", null), send("GET", "/nope", null),
+                send("POST", "/talks", "not json"))) {
+            assertEquals("application/json;charset=UTF-8", res.headers().firstValue("Content-Type").orElse(""), res.body());
+        }
+    }
+
     @Test
     void unknownPropertiesAreIgnored() throws Exception {
         String body = "{\"title\":\"T\",\"format\":\"LIGHTNING_10\",\"level\":\"BEGINNER\",\"speakerId\":" + newSpeaker()

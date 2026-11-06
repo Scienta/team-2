@@ -22,8 +22,8 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,8 +66,8 @@ class RatingsTest {
         assertEquals(talk, body.get("talkId").asLong());
         assertEquals(7, body.get("reviewerId").asLong());
         assertEquals(4, body.get("score").asInt());
-        assertTrue(body.get("ratedAtDisplay").asText().matches("^\\d{1,2}/\\d{1,2}/\\d{2}, \\d{1,2}:\\d{2} [AP]M$"),
-                body.get("ratedAtDisplay").asText());
+        assertTrue(body.get("ratedAtDisplay").asString().matches("^\\d{1,2}/\\d{1,2}/\\d{2}, \\d{1,2}:\\d{2} [AP]M$"),
+                body.get("ratedAtDisplay").asString());
     }
 
     @Test
@@ -161,7 +161,7 @@ class RatingsTest {
         assertFalse(storedAt.isBefore(before), stored);
         assertFalse(storedAt.isAfter(after), stored);
 
-        String display = JSON.readTree(res.body()).get("ratedAtDisplay").asText();
+        String display = JSON.readTree(res.body()).get("ratedAtDisplay").asString();
         assertNotEquals("1/1/20, 12:00 AM", display);
         assertTrue(display.equals(US_SHORT.format(before)) || display.equals(US_SHORT.format(after)), display);
     }
