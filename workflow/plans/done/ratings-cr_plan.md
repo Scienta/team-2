@@ -2,8 +2,8 @@
 
 - [x] Phase 1: Pure average function `Utils.ratingAverage` with unit tests
 - [x] Phase 2: Wire it into `RatingDao` and `ConferenceService`; update the old 1-decimal tests; new HTTP tests
-- [ ] Phase 3: Hurl: fix the old 1-decimal examples, add `examples/ratings-cr.hurl`, prod-like local run
-- [ ] Phase 4: Update `docs/` and the Ratings spec pointer, finish (plan to done; REVIEW.md rows in the PR description)
+- [x] Phase 3: Hurl: fix the old 1-decimal examples, add `examples/ratings-cr.hurl`, prod-like local run
+- [x] Phase 4: Update `docs/` and the Ratings spec pointer, finish (plan to done; REVIEW.md rows in the PR description)
 
 ## Context (read this after a restart)
 
@@ -159,5 +159,5 @@ Commit: `docs: Ratings change request`.
 | M1 No COALESCE; read hi/lo as `Number` | Phase 2 steps 1 and 2 |
 | M2 ratings-rules tie block and titles | Phase 3 step 1: P/Q rewrite, titles ~211/~222, ratings-edge ~25 |
 | M3 Non-tie round-up case | Phase 1: `4,5,5` gives `4.67` |
-| M4 snapshot-api.sh no diff | Phase 2 Check |
-| M6 No "1 decimal" left | Phase 4 Check grep |
+| M4 snapshot-api.sh no diff | Phase 2 Check. Executed: the premise was wrong. The snapshot's rated talk ends at `4, 3, 3` (the `"3"` string score is accepted), so 10/3 shows `3.33` (was `3.3`): two lines differ, both exactly D6. No other diff |
+| M6 No "1 decimal" left | Phase 4 Check grep. Executed: the one hit left is `docs/api.md` `/admin/stats`, which stays 1 decimal by D7 |
