@@ -28,6 +28,8 @@ public class ConferenceService {
 
     private static final Logger log = LoggerFactory.getLogger(ConferenceService.class);
 
+    private static final int MAX_CO_SPEAKERS = 2;
+
     private static final Map<String, Integer> DURATIONS = new HashMap<>();
 
     static {
@@ -224,6 +226,41 @@ public class ConferenceService {
     private Double calculateAverage(long total, int count) {
         return BigDecimal.valueOf(total).divide(BigDecimal.valueOf(count), 1, RoundingMode.HALF_UP).doubleValue();
         // return Utils.roundRating((double) total / count);
+    }
+
+    // ---------------------------------------------------------------- co-speakers
+
+    @Transactional
+    public TalkDto addCoSpeaker(long talkId, long speakerId) {
+        lockTalkAndCheckSpeaker(talkId, speakerId);
+        TalkDto talk = getTalk(talkId);
+        if (talk.speakerId == speakerId) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "the main speaker can't also be a co-speaker");
+        }
+        if (talk.coSpeakerIds.contains(speakerId)) {
+            return talk;
+        }
+        if (talk.coSpeakerIds.size() >= MAX_CO_SPEAKERS) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "a talk can have at most " + MAX_CO_SPEAKERS + " co-speakers");
+        }
+        talkDao.addCoSpeaker(talkId, speakerId);
+        return getTalk(talkId);
+    }
+
+    @Transactional
+    public TalkDto removeCoSpeaker(long talkId, long speakerId) {
+        lockTalkAndCheckSpeaker(talkId, speakerId);
+        talkDao.removeCoSpeaker(talkId, speakerId);
+        return getTalk(talkId);
+    }
+
+    private void lockTalkAndCheckSpeaker(long talkId, long speakerId) {
+        if (!talkDao.lock(talkId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "talk not found");
+        }
+        if (!speakerDao.exists(speakerId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "speaker not found");
+        }
     }
 
     // ---------------------------------------------------------------- statistics

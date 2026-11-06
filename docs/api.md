@@ -61,7 +61,8 @@ Undocumented admin lookup: speakers whose name contains `q` (case-insensitive), 
   "submittedAt": "2026-11-06T12:34:56.789+00:00",
   "submittedOn": "2026-11-06",
   "averageRating": null,
-  "ratingCount": 0
+  "ratingCount": 0,
+  "coSpeakerIds": []
 }
 ```
 
@@ -74,6 +75,7 @@ Undocumented admin lookup: speakers whose name contains `q` (case-insensitive), 
 | `submittedAt` / `submittedOn` | Submission instant (UTC) and its UTC date |
 | `averageRating` | Mean score to 1 decimal, rounded half up (4.25 → 4.3); `null` with no ratings |
 | `ratingCount` | Number of reviewers who rated it |
+| `coSpeakerIds` | Co-speakers' speaker ids in the order they were added; `[]` when none |
 
 ### `POST /talks` → 201
 
@@ -94,6 +96,20 @@ The talk object. 404 `talk not found`.
 All talks ordered by `id`, optionally filtered by `speakerId` (an unknown speaker gives `[]`, not
 404). With `sort=rating`: rated talks first by `averageRating` descending, then `ratingCount`
 descending, then `id` ascending; unrated talks last, by `id`. Any other `sort` value is 400.
+
+## Co-speakers
+
+### `PUT /talks/{id}/co-speakers/{speakerId}` → 200
+
+No body. Returns the talk object. Checks, in this order: talk exists (404); speaker exists (404); not
+the talk's main speaker (409); already a co-speaker gives 200 with nothing changed, also on a full
+talk; fewer than 2 co-speakers (409). Co-speaking doesn't count towards the limit of 3 talks, and
+talk lists by speaker show only the talks where they are the main speaker.
+
+### `DELETE /talks/{id}/co-speakers/{speakerId}` → 200
+
+Returns the talk object. Talk exists (404); speaker exists (404). A registered speaker who isn't a
+co-speaker gives 200 with nothing changed. Someone removed and added again goes last.
 
 ## Ratings
 
