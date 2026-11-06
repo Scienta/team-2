@@ -43,6 +43,11 @@ This file is written as we go: [`.claude/rules/review-log.md`](.claude/rules/rev
 each event (review caught a bug, claim, harness surprise, new artifact) to its section, and
 `/execute-plan` ends by updating it and running `workflow/scripts/check-review.sh`.
 
+The [CI workflow](.github/workflows/deploy.yml) runs `./mvnw -B clean verify` on Java 25
+for PRs and pushes to main. For competition speed, main deployment runs independently
+in parallel with the build/test job; a failing main test does not prevent deployment.
+PRs never deploy; manual deployment is main-only.
+
 ## 2. How we reviewed agent output
 
 - **Plans** were reviewed by a second agent before any code was written, against the spec, the code
@@ -117,6 +122,9 @@ still showed the old answers (200, 409), so they likely ran before the deploy. T
 the checks go OK, and record the bleed (−29.33 points at tick 90).
 
 ## 5. Reusable artifacts
+
+- **CI clean build** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
+  the same clean Maven verification on PRs and main, with independent main deployment.
 
 - **Plan skill** [`.claude/skills/make-plan/`](.claude/skills/make-plan/SKILL.md): restart-proof
   plans with a decisions list for the human.

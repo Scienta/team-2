@@ -1,4 +1,4 @@
-# Deploys main to your team URL (deploy contract: README.md).
+# Builds and tests PRs and main; deploys main in parallel (deploy contract: README.md).
 #
 # The job builds the root Dockerfile with this commit's SHA baked in, pushes it to your registry as
 # app:<sha> and app:latest, and runs .github/fagdag/rollout.sh. That redeploys your container, fails
@@ -7,28 +7,48 @@
 # was live before (which keeps serving) and the job fails, with the container's error_message and
 # its logs since the job started in the last step.
 #
-# You own this file. Add your own gates (tests, Hurl examples, review checks) as jobs that the
-# deploy job `needs`; they run on GitHub-hosted runners. If you break it, you lose your own ticks.
+# The clean Maven build does not gate deployment. Jobs run on GitHub-hosted runners.
 #
 # The organisers set the config: the secrets SCW_ACCESS_KEY and SCW_SECRET_KEY (your push key) and
 # the variables SCW_REGISTRY, SCW_CONTAINER_ID, SCW_ORGANIZATION_ID and TEAM_URL. Don't change them.
 name: deploy
 
 on:
+  pull_request:
   push:
     branches: [main]
   workflow_dispatch:
-
-# One deploy at a time; a newer push waits rather than cancelling a deploy halfway.
-concurrency:
-  group: deploy
-  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+      - name: Cache ~/.m2
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: m2-${{ hashFiles('**/pom.xml', '.mvn/wrapper/maven-wrapper.properties') }}
+          restore-keys: m2-
+      - name: Clean build and all Maven tests
+        run: ./mvnw -B clean verify
+
   deploy:
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    # Serialize deployments only; tests must not delay a newer main deployment.
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -71,28 +91,3 @@ jobs:
           sleep 15 # Cockpit takes a few seconds to ingest the lines.
           echo "error_message: $(scw container container get "$SCW_CONTAINER_ID" -o json | jq -r '.error_message // "(none)"')" || true
           .github/fagdag/logs.sh --tail 200 --since "$ROLLOUT_STARTED_AT"
-
-  # The unit tests run after the deploy and are NOT a gate: the suite is thin and partly wrong.
-  # To make them one, move this job before deploy and add `needs: tests` to the deploy job.
-  tests:
-    needs: deploy
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "25"
-      - name: Cache ~/.m2
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.m2/repository
-            ~/.m2/wrapper
-          key: m2-${{ hashFiles('**/pom.xml', '.mvn/wrapper/maven-wrapper.properties') }}
-          restore-keys: m2-
-      - name: Unit tests
-        run: ./mvnw -B test
