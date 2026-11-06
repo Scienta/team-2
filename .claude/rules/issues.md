@@ -15,4 +15,9 @@ task (a feature, a fix, a chore), assigned to the person who's on it.
 4. **When done** (merged, with evidence), make sure it's closed: `gh issue close <n> --comment "<evidence>"`.
    If you drop a task, unassign yourself and comment why: `gh issue edit <n> --remove-assignee @me`.
 
+**An issue for a harness feature carries the label `spec:<slug>`** (the slug from the harness
+`/roadmap`): `/spec-watch` uses it to see that the feature already has an issue
+(`workflow/scripts/new-specs.sh`). Issues labelled `pipeline` belong to the spec pipeline; leave
+their `pipeline:*` labels to it.
+
 Keep issues short: a title and a line or two. The plan in `workflow/plans/` holds the detail.

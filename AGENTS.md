@@ -87,7 +87,8 @@ Non-negotiables, in case you read nothing else:
   line coverage drops (`workflow/coverage/README.md`).
 - Every task has a GitHub issue (`.claude/rules/issues.md`).
 - All changes via a feature branch and a PR made by a person in the GitHub UI. Use `gh` only for
-  issues, never for PRs.
+  issues, never for PRs. One exception: the spec pipeline (`/implement-issue`) opens a **draft** PR
+  with `gh pr create --draft`; it never merges, marks ready or pushes to `main`.
 - Merging to `main` deploys. Never claim a feature or say it's done without checkable evidence.
 
 **Stack changed (spring-boot-4 branch, 2026-11-06).** The organisers' "as shipped: Java 11, Spring

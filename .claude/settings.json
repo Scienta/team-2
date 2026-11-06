@@ -7,10 +7,24 @@
       "Bash(docker info:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git worktree:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh label:*)",
+      "Bash(gh pr create --draft:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [
-      "Read(.fagdag/harness-token)"
+      "Read(.fagdag/harness-token)",
+      "Bash(cat .fagdag/harness-token*)",
+      "Bash(*harness-token*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh api:*)",
+      "Bash(git push:*main*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git -C:*push*)"
     ]
   }
 }

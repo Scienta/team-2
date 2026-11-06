@@ -68,6 +68,10 @@ more detailed information for debugging and validation.
 **Never create a PR using the GitHub CLI (`gh`) unless directly asked to do so.**
 PRs must be made using click-ops to conform to organizational git processes.
 
+**The one exception: the spec pipeline** (`/implement-issue`, run from `/spec-watch`) opens its PR
+with `gh pr create --draft`, as Daniel asked (issue #35). Never merge, never `gh pr ready`, never push
+to `main`: a person reviews the draft's decisions, marks it ready and merges in the GitHub UI.
+
 Use the GitHub CLI (`gh`) for issues (see `.claude/rules/issues.md`); otherwise refrain from it
 unless explicitly asked.
 
