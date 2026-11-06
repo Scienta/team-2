@@ -108,6 +108,11 @@ POST {{base_url}}/workshops/{{presentation}}/registrations
 { "name": "Cyd", "email": "cyd@example.com" }
 HTTP 409
 
+GET {{base_url}}/workshops/{{presentation}}/registrations
+HTTP 200
+[Asserts]
+jsonpath "$" count == 0
+
 # A workshop that isn't accepted takes no registrations, and its list is empty (D3, D5)
 POST {{base_url}}/workshops/{{not_accepted}}/registrations
 { "name": "Cyd", "email": "cyd@example.com" }

@@ -111,7 +111,9 @@ class WorkshopRegistrationTest {
             setStatus(talk, "ACCEPTED");
             assertEquals(409, register(talk, "Ada", "ada@example.com").statusCode(), format);
             assertEquals(400, register(talk, "", "ada@example.com").statusCode(), format + ": 400 before 409");
-            assertEquals(404, get(talk).statusCode(), format);
+            HttpResponse<String> listed = get(talk);
+            assertEquals(200, listed.statusCode(), format);
+            assertEquals("[]", listed.body(), format);
         }
     }
 

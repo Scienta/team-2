@@ -30,6 +30,19 @@ class UtilsTest {
     }
 
     @Test
+    void csvQuotesOnlyWhatTheSemicolonExportNeeds() {
+        assertEquals("", Utils.csv(null));
+        assertEquals("plain", Utils.csv("plain"));
+        assertEquals("\"a;b\"", Utils.csv("a;b"));
+        assertEquals("\"say 'hi'\"", Utils.csv("say \"hi\""));
+    }
+
+    @Test
+    void capitalizeLeavesEmptyAlone() {
+        assertEquals("", Utils.capitalize(""));
+    }
+
+    @Test
     void capitalize() {
         assertEquals("Workshop", Utils.capitalize("WORKSHOP"));
     }

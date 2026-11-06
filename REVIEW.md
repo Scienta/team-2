@@ -200,7 +200,7 @@ current status, not the timeline.
 failing request: `POST /workshops/{id}/registrations` for an accepted `LIGHTNING_10` talk, which we
 answered 404 "workshop not found" (decision D2: "it isn't a workshop, so that resource doesn't
 exist"). The harness wants something else. Our tests pinned our own guess, and the risk list didn't
-flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4).
+flag D2. Fix in #37: 409 after body validation, like a workshop that isn't accepted (D3, D4). After that deploy (tick 217) check-2 got past the `POST` and failed on the next request, `GET` on the same talk (404, flagged as a risk in PR #38); second fix: 200 `[]`.
 TODO(human): confirm check-2 goes OK after the deploy, and the bleed it cost.
 
 ## 5. Reusable artifacts
