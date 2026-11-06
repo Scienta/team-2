@@ -31,7 +31,9 @@ local to the current developer's preferences.
 
 ## Project Setup
 
-This is a Java 11 / Spring Boot 2.7 project built with the Maven wrapper (see "Commands" above).
+This is a Java 25 / Spring Boot 4.1 project built with the Maven wrapper (see "Commands" above;
+`AGENTS.md`'s "as shipped: Java 11, Spring Boot 2.7" is history). Build with a JDK 25; `LOCAL.md` has
+the `JAVA_HOME` for this machine.
 
 - Source code: `src/main/java/`, tests: `src/test/java/`
 - Build and test: `./mvnw package` (JUnit; Postgres via Testcontainers)

@@ -5,7 +5,12 @@ This file contains **overrides and additions** to the team workflow described in
 
 ## Stack
 
-- Java 11, Spring Boot 2.7, Maven wrapper (`./mvnw`)
+- Java 25, Spring Boot 4.1 (Spring Framework 7, Jackson 3, Testcontainers 2), Maven wrapper (`./mvnw`);
+  upgraded from Java 11 / Boot 2.7, see `workflow/adrs/0002-spring-boot-4-java-25.md`
+- Build with a JDK 25: `LOCAL.md` has the `JAVA_HOME` (and Docker settings) for this machine
+- Jackson 3 lives in `tools.jackson.*`; its annotations are still `com.fasterxml.jackson.annotation`
+- Boot 4 property names (`spring.web.error.*`, `spring.servlet.encoding.*`, `spring.jackson.json.read.*`):
+  Boot ignores unknown property names silently, so a wrong name only shows up in `WireFormatTest`
 - Postgres, schema in `src/main/resources/schema.sql`
 - Code in `src/main/java/no/scienta/cfp/`, tests in `src/test/java/no/scienta/cfp/`
 - Background docs on the base app in `docs/` (API, architecture, data model, known issues, operations)

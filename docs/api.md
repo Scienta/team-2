@@ -9,6 +9,11 @@ All bodies are JSON. Errors use Spring Boot's default error body, with the reaso
 {"timestamp": "…", "status": 400, "error": "Bad Request", "message": "title is required", "path": "/talks"}
 ```
 
+Status codes, keys and our own reasons (like `title is required`) are stable. Messages that Spring or
+Jackson generate (bad JSON, a non-numeric id, 405, 415, unknown route, the bean-validation summary)
+changed wording with the Spring Boot 4 upgrade and may change again with the framework. A bean-validation 400 also
+has an `errors` array between `message` and `path`.
+
 ## Speakers
 
 ### `POST /speakers` → 201

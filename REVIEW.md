@@ -60,7 +60,7 @@ on a 409 before testing any ranking. The review of the reorg plan also caught th
 HTML-comment check would have reported an empty claim-log section as filled.
 
 The `plan-reviewer` agent's review of the Spring Boot 4 plan
-(`workflow/plans/todo/spring-boot-4_plan_review.md`) caught three blocking problems before any code
+(`workflow/plans/done/spring-boot-4_plan_review.md`) caught three blocking problems before any code
 was written:
 - The plan only tested the trailing slash on `/talks/{id}/` and treated keeping it as a question
   for the PO. `speakers.md:20` requires it, `POST /speakers/` included. Spring 6 drops it, so the
@@ -95,6 +95,7 @@ On Boot 4.1.2 the net caught three more:
 | Talks | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–6 OK |
 | Ratings | claimed (base feature) | 0 | Shipped; then verified by `workflow/plans/done/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
 | Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
+| Spring Boot 4 | not yet claimed | TODO(human): tick when claimed | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. TODO(human): after deploy, the plan's post-deploy checklist (harness base checks OK over ≥ 5 ticks) |
 
 ## 4. What the harness caught that we didn't
 
@@ -139,7 +140,7 @@ the checks go OK, and record the bleed (−29.33 points at tick 90).
   timestamp digits, framework messages), so two runs on the same build diff empty. Diff a snapshot
   from before any upgrade or refactor against one from after it, and you see every user-visible
   change. It was written for the Boot 4 upgrade; its first baseline is
-  `workflow/plans/todo/spring-boot-4.baseline.txt`.
+  `workflow/plans/done/spring-boot-4.baseline.txt`.
 - **Wire-format net** [`WireFormatTest`](src/test/java/no/scienta/cfp/WireFormatTest.java): asserts
   on raw response strings, so it survives a JSON library swap. It was checked by breaking each
   guarded behaviour with a property (8 of 8 caught).

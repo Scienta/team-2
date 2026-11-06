@@ -5,7 +5,7 @@
 - [x] Phase 2: Java 25 + Spring Boot 3.5.x, tests and snapshot diff green
 - [x] Phase 3: Spring Boot 4.1.2, tests and snapshot diff green; `AGENTS.md` team note
 - [x] Phase 4: Dockerfile and CI on Java 25; container run locally, snapshot diff, Hurl example
-- [ ] Phase 5: Docs, rules, ADR, `REVIEW.md`; plan to done; hand over the production checklist
+- [x] Phase 5: Docs, rules, ADR, `REVIEW.md`; plan to done; hand over the production checklist
 
 ## Context (read this after a restart)
 
@@ -142,7 +142,7 @@ The safety net. Everything here must pass on the **current** stack. Assert on **
    timestamps replaced by placeholders that keep their *shape* (e.g. `<ts:....-..-..T..:..:..
    .SSS+00:00>`), framework-generated `message`s replaced by `<framework-message>` (D6), and the
    `Content-Type` header kept. Baseline from the local 2.7 jar into
-   `workflow/plans/todo/spring-boot-4.baseline.txt`.
+   `workflow/plans/done/spring-boot-4.baseline.txt`.
 
 Check: `./mvnw package` (JDK 11) green; `snapshot-api.sh` run **twice** against the same 2.7
 service and the two outputs diff empty (normalisation works). Commit:
