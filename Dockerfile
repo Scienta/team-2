@@ -16,4 +16,6 @@ ENV PGSSLMODE=require
 ARG GIT_SHA=unknown
 ENV GIT_SHA=$GIT_SHA
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# C1 only: on the container's small CPU share, C2 compiling competes with requests for minutes after a start, and the
+# first burst after a deploy timed out. Measured at 0.5 CPU: start-up 18 s -> 5 s, first burst max 5 s -> 2.6 s.
+ENTRYPOINT ["java", "-XX:TieredStopAtLevel=1", "-jar", "/app/app.jar"]
