@@ -88,7 +88,7 @@ together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: upda
 | Talks | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–6 OK |
 | Ratings | claimed (base feature) | 0 | Shipped; then verified by `workflow/plans/done/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
 | Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
-| Acceptance | claimed | 148 | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16; `/pre-claim` all 7 items pass (deploy `50ea65c` live, 6/6 Hurl files green against our URL, 18/18 checks of claimed features OK at tick 147). After the claim: acceptance check-1 to check-5 all OK at tick 150, no bleed; the risks D5, D6 and D7 held |
+| Acceptance | claimed | 148 | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16; `/pre-claim` all 7 items pass (deploy `50ea65c` live, 6/6 Hurl files green against our URL, 18/18 checks of claimed features OK at tick 147). After the claim: acceptance check-1 to check-5 all OK at tick 150, no bleed. No check failed on D5, D6 or D7 (the harness doesn't say which rules its checks exercise) |
 
 ## 4. What the harness caught that we didn't
 
