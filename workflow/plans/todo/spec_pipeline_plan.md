@@ -29,8 +29,8 @@ review; a person checks them on the PR.
   "agent default, pending human" in the spec's "Approved by" column, and opens a **draft** PR that lists
   them at the top. A person approves before marking it ready.
 - **D2. PRs via `gh`:** only `gh pr create --draft`, only from `/implement-issue`. Never merge, never
-  `gh pr ready`, never push to `main`. Deny rules in `.claude/settings.json`; the real guard is branch
-  protection on `main` (a person turns it on: `TODO(human)` in Phase 5).
+  `gh pr ready`, never push to `main`. Deny rules in `.claude/settings.json`; no branch protection
+  (Daniel, 2026-11-06: competition speed), so the deny rules are the only guard.
 - **D3. Scheduler:** `/loop 10m /spec-watch` in a local Claude Code session, not CI. The session runs
   in a dedicated worktree on an up-to-date `main` (`../team-2-wt/pipeline`, `git pull` each tick); until
   this PR is merged, in `../team-2-wt/35-spec-pipeline` (S5).
@@ -97,7 +97,7 @@ the commit message, M1). Commit: `docs: spec pipeline in workflow README and REV
 
 ## Phase 5: supervised first run (a person watching)
 
-1. A person opens the PR for this branch in the GitHub UI and turns on branch protection for `main`.
+1. PR #36 merged (no branch protection: Daniel's call, 2026-11-06).
 2. In the pipeline worktree, `/spec-watch` once. Evidence: the issue URL, plan and review files in the
    feature worktree, the draft PR URL with decisions on top, `gh pr view <n> --json isDraft` = true.
 3. Then `/loop 10m /spec-watch`.
