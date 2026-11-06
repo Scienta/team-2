@@ -66,6 +66,23 @@ a row lock on the talk.
 Unique on `(talk_id, email_key)`. The limit of 20 per workshop is enforced in `WorkshopService`, under
 a row lock on the talk.
 
+## `programme_slot`
+
+One row per slot, `S1` to `S5`, seeded by `schema.sql`. `slot TEXT` is the primary key. It holds no
+data: it exists to be locked (`SELECT … FOR UPDATE`), so the three rooms of a slot are changed one
+request at a time. The times are in code (`Venue`).
+
+## `programme_entry`
+
+| Column | Type | Notes |
+|---|---|---|
+| `room` | `TEXT NOT NULL` | `R1`, `R2` or `R3` (`CHECK`) |
+| `slot` | `TEXT NOT NULL` | References `programme_slot` |
+| `talk_id` | `INTEGER NOT NULL` | Unique: a talk is on the programme only once. No foreign key to `talk` |
+
+Primary key `(room, slot)`: one talk per place. The other rules (accepted, the workshop slot, no
+speaker in two rooms) are enforced in `ProgrammeService`, under the locks.
+
 ## `vote` (legacy)
 
 `talk_id`, `voter`, `stars`. The 2019 voting system, replaced by `rating` in 2020. Unused by the
