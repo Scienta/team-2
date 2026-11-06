@@ -31,7 +31,10 @@ and the claim):
    score validation). We have no product owner, so every open question comes to a person with
    options and a recommendation ([`.claude/rules/no-product-owner.md`](.claude/rules/no-product-owner.md)).
 5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
-   tests and Hurl examples, one commit per phase, no broken windows.
+   tests and Hurl examples, one commit per phase, no broken windows. Before the PR,
+   [`workflow/scripts/local-rollout.sh`](workflow/scripts/local-rollout.sh) runs the image we deploy
+   against a Postgres that keeps its data, gates on `/health` showing the SHA and runs the Hurl
+   examples (`.claude/rules/project.md`, "Prod-like Local Run").
 6. **PR in the GitHub UI**, merge to `main` deploys, check `/health` shows the new SHA.
 7. **Evidence, then a person claims**, then a row in the claim log below.
 
@@ -200,6 +203,13 @@ current status, not the timeline.
 - **Wire-format net** [`WireFormatTest`](src/test/java/no/scienta/cfp/WireFormatTest.java): asserts
   on raw response strings, so it survives a JSON library swap. It was checked by breaking each
   guarded behaviour with a property (8 of 8 caught).
+- **Prod-like local run** [`workflow/scripts/local-rollout.sh`](workflow/scripts/local-rollout.sh)
+  with the compose `app` profile: the same rollout gate as `.github/fagdag/rollout.sh`, on a laptop,
+  against a database that keeps its data like prod. Works for any service with a Dockerfile and a
+  `/health` that reports its version.
+- **Transcript replay** [`workflow/scripts/transcript-to-hurl.sh`](workflow/scripts/transcript-to-hurl.sh):
+  a harness check's requests as a Hurl file to replay locally, with production's answers as comments.
+  With request logging (`RequestLogFilter`), the harness's traffic shows in the container logs.
 
 ## 6. One thing we'd do differently
 
