@@ -99,9 +99,11 @@ co-speaker, deployed as `4ee0b38`. The harness timeline shows check-1 and check-
 **A deploy can cost points, even with no change in behaviour.** At tick 121, 15 of the 18 claimed
 checks went FAULTY for that one tick, all on `POST /speakers`, and bleed went from −30.93 (tick 119)
 to −37.83 (tick 122). The container logs line up with the rollout of `3cc2288` (PR #8, build and
-docs only): the new revision had started by 13:27:07Z and the old one shut down at 13:27:42Z. Tick
-102 (two checks, also `POST /speakers`, no response recorded) came soon after the deploy of
-`33ad4c3`. We didn't see this because we only looked at current status, not the timeline.
+docs only): the new revision had started by 13:27:07Z and the old one shut down at 13:27:42Z. It
+happened again at tick 126: 7 checks, bleed −37.83 to −41.93, as the rollout of `2ce9c6b` (PR #9)
+shut down the old revision at 13:33:19Z. Tick 102 (two checks, also `POST /speakers`, no response
+recorded) came soon after the deploy of `33ad4c3`. We didn't see this because we only looked at
+current status, not the timeline.
 
 ## 5. Reusable artifacts
 
