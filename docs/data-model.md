@@ -26,7 +26,7 @@ its data across deploys, so a changed `CREATE TABLE` won't alter an existing tab
 | `format` | `TEXT NOT NULL` | `LIGHTNING_10`, `LIGHTNING_20`, `PRESENTATION`, `WORKSHOP` |
 | `duration` | `INTEGER` | Minutes, derived from `format`; exposed as `durationMinutes` |
 | `level` | `TEXT` | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` |
-| `status` | `TEXT NOT NULL DEFAULT 'SUBMITTED'` | |
+| `status` | `TEXT NOT NULL DEFAULT 'SUBMITTED'` | `SUBMITTED`, `ACCEPTED`, `REJECTED`, `WAITLISTED` or `WITHDRAWN`; changed only through the acceptance endpoints |
 | `speaker_id` | `INTEGER NOT NULL` | Indexed (`ix_talk_speaker`). **No foreign key** to `speaker`. |
 | `submitted_at` | `BIGINT` | Epoch millis, UTC. Exposed as `submittedAt` (ISO instant) and `submittedOn` (UTC date). |
 
