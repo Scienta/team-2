@@ -1,11 +1,11 @@
 # Plan: Programme scheduling
 
-- [ ] Phase 0: Commit the plan and its review; get Eirik's OK on the S4 wording in the spec
+- [x] Phase 0: Commit the plan and its review; get Eirik's OK on the S4 wording in the spec
 - [x] Phase 1: The venue and the rules as pure code (`Venue`, `SchedulingRules`), with unit tests
 - [x] Phase 2: `PUT` and `GET /programme/{room}/{slot}` (D1 to D10, D13 to D18, D20), with `ProgrammeTest`. The `DuplicateKeyException` → 409 path moved to Phase 4, with the concurrency tests that reach it
 - [x] Phase 3: `DELETE /programme/{room}/{slot}` (D11, D12, D18)
 - [x] Phase 4: Concurrency (D19): tests that assert the loser's reason, so removing either lock fails one; green 3 runs in a row; then offer the push. Without the slot lock: `concurrentPutsIntoOnePlace` gets a 500 (primary key) and `concurrentSharedSpeakerInOneSlot` two 200s. Without the talk lock: `concurrentPutsOfOneTalkIntoTwoPlaces` gets a 500 (`UNIQUE (talk_id)`). With both: 36/36 green 3 runs in a row. The `DuplicateKeyException` → 409 catch (step 0) is not added: with the locks it can't happen, and without them the tests already fail on the 500; see the note in step 0
-- [ ] Phase 5: Hurl examples: a deploy-safe `examples/scheduling.hurl` and a local-only happy path
+- [x] Phase 5: Hurl examples: a deploy-safe `examples/scheduling.hurl` and a local-only happy path. All 9 example files and `examples/local/` green twice in a row against a local service on Java 25; `programme_entry` empty afterwards
 - [ ] Phase 6: Update `docs/`, finish (update from `main`, coverage floor, `REVIEW.md`, plan to done)
 
 Revised after the review in `scheduling_plan_review.md` (B1, B2, S1 to S4, M1 to M12; see "Review
