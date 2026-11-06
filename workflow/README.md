@@ -7,7 +7,7 @@ How team-2 gets from a feature request to a claim. Every agent starts with
 ```
 feature request on the harness
   → /spec-from-request          our spec + decisions table           workflow/specs/<slug>.md
-  → a person approves, asks the product owner about harness-visible decisions
+  → a person approves the decisions (no PO: options + recommendation, .claude/rules/no-product-owner.md)
   → /make-plan                  phased, restart-proof plan           plans/todo/<slug>_plan.md
   → plan-reviewer (or another tool) reviews it, the plan answers     plans/todo/<slug>_plan_review.md
   → /execute-plan               phase by phase, tests, one commit each
