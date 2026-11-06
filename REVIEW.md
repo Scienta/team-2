@@ -30,7 +30,10 @@ and the claim):
 4. **Human approves the decisions** (e.g. E1 in the ratings plan: a missing talk gives 404 before
    score validation).
 5. **Execute** with the [`/execute-plan`](.claude/skills/execute-plan/SKILL.md) skill: one phase at a time,
-   tests and Hurl examples, one commit per phase, no broken windows.
+   tests and Hurl examples, one commit per phase, no broken windows. Before the PR,
+   [`workflow/scripts/local-rollout.sh`](workflow/scripts/local-rollout.sh) runs the image we deploy
+   against a Postgres that keeps its data, gates on `/health` showing the SHA and runs the Hurl
+   examples (`.claude/rules/project.md`, "Prod-like Local Run").
 6. **PR in the GitHub UI**, merge to `main` deploys, check `/health` shows the new SHA.
 7. **Evidence, then a person claims**, then a row in the claim log below.
 
@@ -127,6 +130,13 @@ current status, not the timeline.
   to. No extra tools, works on any Maven project.
 - **Scripts** in [`workflow/scripts/`](workflow/scripts/): a rate-limit-aware harness client that
   never prints the token, and a `REVIEW.md` check with its own test.
+- **Prod-like local run** [`workflow/scripts/local-rollout.sh`](workflow/scripts/local-rollout.sh)
+  with the compose `app` profile: the same rollout gate as `.github/fagdag/rollout.sh`, on a laptop,
+  against a database that keeps its data like prod. Works for any service with a Dockerfile and a
+  `/health` that reports its version.
+- **Transcript replay** [`workflow/scripts/transcript-to-hurl.sh`](workflow/scripts/transcript-to-hurl.sh):
+  a harness check's requests as a Hurl file to replay locally, with production's answers as comments.
+  With request logging (`RequestLogFilter`), the harness's traffic shows in the container logs.
 
 ## 6. One thing we'd do differently
 

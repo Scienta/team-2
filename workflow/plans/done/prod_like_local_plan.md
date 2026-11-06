@@ -4,7 +4,7 @@
 - [x] Phase 2: Compose `app` service and a persistent Postgres volume
 - [x] Phase 3: `workflow/scripts/local-rollout.sh`: build, start, wait for the SHA on `/health`, run the Hurl examples
 - [x] Phase 4: `workflow/scripts/transcript-to-hurl.sh` with its own test script
-- [ ] Phase 5: Docs, `REVIEW.md` §1/§5, plan to done
+- [x] Phase 5: Docs, `REVIEW.md` §1/§5, plan to done
 
 ## Context (read this after a restart)
 
@@ -107,3 +107,7 @@ Check: `workflow/scripts/check-review.sh` lists only the human TODO headings it 
 
 | Finding | Response |
 |---|---|
+| No `plan-reviewer` run | This plan was written and executed by one background agent that couldn't start sub-agents. It's a tooling chore with no harness-visible behaviour. TODO(human): review the PR instead. |
+| Self-review: `schema.sql` on a persisted volume | Checked: every statement is `IF NOT EXISTS`, so restarts against `pgdata` work (verified by down/up then a `409` on the same email). |
+| Self-review: an escaping exception logs the pre-error status | The filter logs `500` when the chain throws (`logsAnEscapingExceptionAsA500`). |
+| Self-review: port clash with someone's running Compose Postgres | `PG_PORT`/`APP_PORT` overrides; verified with a separate project on 55432/18080. |
