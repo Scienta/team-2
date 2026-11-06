@@ -3,7 +3,7 @@
 Must-have (secures eligibility, about 30 min):
 - [x] Phase 0: Branch `workflow-reorg` from `main`, commit this plan and its review, one baseline `./mvnw package` (green; `ratings-verify` not merged yet, 8 commits ahead; build env in `LOCAL.md`)
 - [x] Phase 1: Move `skills/PROJECT.md` and `adrs/` (not the plan folders), fix references outside `todo/` and `done/`
-- [ ] Phase 2: First full pass of `REVIEW.md` (every heading has text)
+- [x] Phase 2: First full pass of `REVIEW.md` (every heading has text)
 - [ ] Phase 3: Split `AGENTS.md`: team half to `.claude/rules/team-workflow.md`, imperative pointer and non-negotiables stay
 
 Optional tail (as budget allows, in this order):

@@ -14,31 +14,75 @@
 
 ## 1. Workflow
 
-<!-- The steps you actually ran, from spec to claim. Link to the files in workflow/ and .claude/. -->
+Every feature goes the same way, with a person approving at the two points that matter (decisions
+and the claim):
+
+1. **Spec.** Copy the harness spec or feature request into [`workflow/specs/`](workflow/specs/).
+   A feature request isn't a spec, so the plan lists every open decision (status codes, edge cases).
+2. **Plan.** An agent writes a phased, restart-proof plan with the `making_a_plan` skill (becoming
+   `/make-plan`): a checklist on top, a "read this after a restart" context block, the decisions
+   for a human, and a falsifiable "Check:" per phase. Plans live in `todo/` (moving to
+   `workflow/plans/`).
+3. **Review the plan.** A second agent, often a different tool, reviews the plan and writes
+   `<feature>_plan_review.md` next to it; the first agent revises. Examples:
+   `todo/ratings_plan_review.md`, `todo/workflow_reorg_plan_review.md`.
+4. **Human approves the decisions** (e.g. E1 in the ratings plan: a missing talk gives 404 before
+   score validation).
+5. **Execute** with the `phase_execution` skill (becoming `/execute-plan`): one phase at a time,
+   tests and Hurl examples, one commit per phase, no broken windows.
+6. **PR in the GitHub UI**, merge to `main` deploys, check `/health` shows the new SHA.
+7. **Evidence, then a person claims**, then a row in the claim log below.
+
+Team rules for agents: [`.claude/rules/project.md`](.claude/rules/project.md) (moving the rest of
+`AGENTS.md`'s team half to `.claude/rules/`). ADRs: [`workflow/adrs/`](workflow/adrs/).
 
 ## 2. How we reviewed agent output
 
-<!-- Who or what reviewed the agents' work (people, review agents, tests, Hurl examples, gates in
-the deploy workflow), and against what (the spec, its examples, your own checks). -->
+- **Plans** were reviewed by a second agent before any code was written, against the spec, the code
+  and our rules. This plan's review came from Copilot CLI, the code from Claude Code: a different
+  tool catches different things.
+- **Decisions** the spec leaves open were approved by a person (recorded in the plan).
+- **Tests:** `./mvnw package` with Testcontainers Postgres after every phase; one integration test
+  class per feature (`CoSpeakersTest`, `RatingsTest`, …).
+- **Hurl examples** in `examples/` against a local service, then against our URL.
+- **Harness feedback** (`/api/teams/team-2/feedback`) after deploy.
+
+**Bug our review caught:** the ratings plan's ranking test created five talks for one speaker, but
+the talks spec allows three. The plan review caught it before execution; the test would have failed
+on a 409 before testing any ranking. The review of the reorg plan also caught that a per-line
+HTML-comment check would have reported an empty claim-log section as filled.
 
 ## 3. Claim log
 
-<!-- A running entry per feature or change request, written when you claim or decide to skip it:
-claimed or skipped, at which tick, and the evidence you held before claiming. For example:
-
 | Feature | Claimed or skipped | Tick | Evidence before claiming |
 |---|---|---|---|
-| Speakers | claimed | 3 | examples.hurl green against our URL, plus our own edge-case tests for R3 and R7 |
--->
+| Speakers | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–4 OK |
+| Talks | claimed (base feature) | 0 | Shipped with the base app; harness checks 1–6 OK |
+| Ratings | claimed (base feature) | 0 | Shipped; then verified by `todo/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
+| Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
 
 ## 4. What the harness caught that we didn't
 
-<!-- Failures the harness found after you claimed (or after a deploy), and why your own review missed them. -->
+**Co-speakers, claimed at tick 68, two of three checks FAULTY at tick 81.** The feature request
+doesn't give status codes, so we decided them ourselves and pinned them in tests:
+- removing someone who isn't a co-speaker → 200, unchanged (`removingSomeoneWhoIsNotACoSpeakerChangesNothing`);
+  the harness fails on exactly that request (`DELETE` the same co-speaker twice).
+- the main speaker as co-speaker → 409; the harness fails on that request (`PUT`).
+
+Why we missed it: our tests checked *our* decisions, and nobody asked the product owner before
+claiming. The decisions were in the plan but weren't flagged as "ask the PO". Lesson for the
+workflow: open status-code decisions on a drip feature go to the product owner before the claim.
 
 ## 5. Reusable artifacts
 
-<!-- What's worth taking to client work: agents, skills, prompts, spec templates, gates. Give the paths. -->
+- **Plan skill** `skills/making_a_plan.md` (becoming `.claude/skills/make-plan/`): restart-proof
+  plans with a decisions list for the human.
+- **Execution skill** `skills/phase_execution.md` (becoming `.claude/skills/execute-plan/`): phase
+  by phase, test-gated, one commit per phase.
+- **Cross-tool plan review** (`todo/*_plan_review.md`): Blocking / Significant / Minor / What's good,
+  with file:line.
+- **Spec copies** in `workflow/specs/`, so agents work offline from the harness rate limit.
 
 ## 6. One thing we'd do differently
 
-<!-- One thing, and why. -->
+TODO(human)
