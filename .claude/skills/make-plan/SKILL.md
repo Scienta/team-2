@@ -11,7 +11,8 @@ description: Write a phased, restart-proof plan for a feature or chore into work
 2. Check with the ADRs in `workflow/adrs` to make sure you have an overview
    over important architectural decisions made so far.
 3. Break down the work into clearly separated phases with
-   clear deliverables that can be tested (if applicable)
+   clear deliverables that can be tested (if applicable). Each phase brings tests for the
+   code it adds: line coverage may not drop (`workflow/coverage/README.md`).
 4. Find the optimal order of implementation of the tasks,
    minimising the number of reads and writes (keeping the
    token consumption down)

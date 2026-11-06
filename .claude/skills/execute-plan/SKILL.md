@@ -26,6 +26,7 @@ When executing a plan, do as follows:
 3. When completed, add at least one test for the new function
 4. When the new and old tests all run WITHOUT WARNINGS (`./mvnw package`),
    check off the item in the checklist, and commit the changes to git.
+   A coverage drop also fails the build: fix it with tests (`workflow/coverage/README.md`).
 5. Check the status of the context window.
    If tokens > 130000, stop and report to the human.
    If tokens < 130000, move to the next item on the list.
@@ -39,6 +40,8 @@ When executing a plan, do as follows:
   (compiler and test output) that may show up. Again: no broken windows!
 - If the plan changed HTTP behaviour, start the service locally and run
   `examples/run.sh` against it.
+- Update the branch with the latest `main`, then raise the coverage floor if coverage went up
+  (`workflow/coverage/README.md`, "Before merging").
 
 ## After Completing the Plan
 
@@ -48,5 +51,9 @@ do as follows:
 1. See if there are any remaining, required updates to ADRs in `workflow/adrs`,
    if any architecture driving decisions have been made through the work.
 2. Move the plan (and its review) from `workflow/plans/todo/` to `workflow/plans/done/` with `git mv`
-3. Commit the final changes to git
-4. Ask the human whether to push to the remote. Remember that merging to `main` deploys.
+3. Update `REVIEW.md` following `.claude/rules/review-log.md`: at least the workflow (§1) and
+   artifacts (§5) if they changed, a §2 story for every bug a review caught during this plan, and
+   a draft claim-log row (§3) with the evidence. Then run `workflow/scripts/check-review.sh` and
+   include the headings it still lists in your report.
+4. Commit the final changes to git
+5. Ask the human whether to push to the remote. Remember that merging to `main` deploys.

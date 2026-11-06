@@ -15,8 +15,8 @@ binding. What follows is how this team works; where it conflicts with those fact
 4. Then execute the plan phase by phase
 5. Ensure "No Broken Windows" - all tests pass before finishing
 
-**Keep `REVIEW.md` current.** After a feature is merged or claimed, append its row to `REVIEW.md`
-§3 (claim log), and add to §4 if the harness found something we missed.
+**Keep `REVIEW.md` current**, in the same commit as the work: `.claude/rules/review-log.md` says
+which event goes in which section, and why it decides whether we can win.
 
 ## Reading List
 
@@ -47,7 +47,8 @@ details.
 ### Running Checks
 
 ```bash
-./mvnw package                      # build and run all tests
+./mvnw package                      # build, run all tests, coverage report and floor
+workflow/coverage/line-coverage.sh  # line coverage vs the floor in pom.xml
 ./mvnw test -Dtest=SomeTest         # run a single test class
 examples/run.sh [base-url]          # Hurl examples against a running service
 ```
@@ -65,7 +66,8 @@ more detailed information for debugging and validation.
 **Never create a PR using the GitHub CLI (`gh`) unless directly asked to do so.**
 PRs must be made using click-ops to conform to organizational git processes.
 
-Generally, refrain from using the GitHub CLI (`gh`) unless explicitly asked.
+Use the GitHub CLI (`gh`) for issues (see `.claude/rules/issues.md`); otherwise refrain from it
+unless explicitly asked.
 
 ### CI/CD Awareness
 
@@ -89,6 +91,7 @@ When you make changes to files:
 2. Before finishing, ensure:
    - **NO FAILING TESTS**
    - **NO WARNINGS**
+   - **NO COVERAGE DROP** (`workflow/coverage/README.md`)
 3. If tests or builds fail, fix them before completing your work
 
 ### Code Quality
