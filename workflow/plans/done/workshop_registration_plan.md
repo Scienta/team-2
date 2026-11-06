@@ -39,7 +39,7 @@ review afterwards, and Håkon confirmed them, option a) on each). We have no pro
 (`.claude/rules/no-product-owner.md`, merged while this plan ran): that person's answers are what
 pre-claim item 1 checks.
 
-Before any claim, deploy and read `workflow/scripts/harness.sh feedback`: unclaimed features are
+**Correction after the deploy:** feedback shows no checks for an unclaimed feature (0/0, timeline 404), so the table below applies after the claim, not before. As planned: unclaimed features are
 checked too. So the risky decisions can be tested before the permanent click:
 
 | Decision | Our answer | Fallback if a check goes FAULTY on it |

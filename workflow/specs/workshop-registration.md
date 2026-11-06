@@ -64,7 +64,7 @@ behaviour a harness check can see (status codes, idempotency, ordering) before t
 then changed D6, D7 and D17, and Håkon confirmed those too (option a) on each). We follow the same conventions as
 Acceptance: 404 for an unknown id in the path, 400 for invalid input, 409 for a valid request the
 current state doesn't allow. **Open risks**, where the spec doesn't decide: D2, D5, D7, D10, D11. The harness
-checks unclaimed features too, so read those checks after the deploy and before any claim.
+feedback shows no checks for a feature until it is claimed (0/0, timeline 404), so these can only be tested after the claim.
 
 | ID | Question | Our answer | Ask the PO? | Approved by (person, PO answer) |
 |---|---|---|---|---|
@@ -73,14 +73,14 @@ checks unclaimed features too, so read those checks after the deploy and before 
 | D3 | `POST` to a workshop that is `SUBMITTED`, `WAITLISTED` or `REJECTED` | 409, nothing stored | yes | Håkon, 2026-11-06 |
 | D4 | `POST` to a workshop that was accepted and then `WITHDRAWN` | 409, nothing stored; the people already registered stay | yes | Håkon, 2026-11-06 |
 | D5 | `GET` on a workshop that isn't accepted, or is withdrawn | 200 with the list: `[]` if nobody registered, otherwise the people registered before the withdrawal | yes | Håkon, 2026-11-06 |
-| D6 | `name` or `email` missing, null, empty, only whitespace (including a no-break space), not a string, or containing control characters | 400. Stricter than `POST /speakers`, whose typed form would coerce a number to a string | yes | Håkon, 2026-11-06: option a) |
+| D6 | `name` or `email` missing, null, empty, only whitespace (including a no-break space), not a string, or with an ASCII control character inside the trimmed value | 400. Whitespace at the edges, a tab or line break included, is trimmed away for the check, and the value is stored as typed. Other control characters are 400 wherever they are, since Postgres can't store a NUL. Stricter than `POST /speakers`, whose typed form would coerce a number to a string | yes | Håkon, 2026-11-06: option a) |
 | D7 | `email` present but not an email | 400 unless it has one `@`, no whitespace, text before the `@`, and a dot with text on both sides after it. So `@example.com`, `a b@c.d` and `ada@localhost` are 400. `Utils.isValidEmail` is too weak (it accepts `@example.com`) and stays as it is. Stricter than `POST /speakers`, which only checks not-blank | yes | Håkon, 2026-11-06: option a) |
 | D8 | Malformed JSON, empty body, a JSON array, or a non-integer id in the path; `Content-Type: text/plain` | 400 from Spring's binding, before the talk is looked up; 415 for `text/plain`, as ratings and Acceptance | yes | Håkon, 2026-11-06 |
 | D9 | `POST` when the workshop already has 20 registrations | 409, nothing stored | yes | Håkon, 2026-11-06 |
 | D10 | `POST` with an email already registered for this workshop | 409, nothing changes (not an idempotent 200), like `POST /speakers` | yes | Håkon, 2026-11-06 |
 | D11 | Which emails count as the same? | Ignore letter case and surrounding whitespace. Store and return the email exactly as typed | yes | Håkon, 2026-11-06 |
 | D12 | Several things wrong at once | 404, then 400, then 409, like ratings (E1: missing talk before validation). Full and duplicate are both 409, so their order isn't visible in the status | yes | Håkon, 2026-11-06 |
-| D13 | Length limits on `name` and `email` | None: the request gives none | yes | Håkon, 2026-11-06 |
+| D13 | Length limits on `name` and `email` | `email` at most 254 characters after trimming, else 400 (RFC 5321); without a limit, a long key overflows the unique index and gives a 500. `name` has no limit: the request gives none | yes | Håkon, 2026-11-06: option a) |
 | D14 | Can a speaker on the workshop register as an attendee? Must an attendee be a registered speaker? | Yes, and no: attendees are independent of speakers | yes | Håkon, 2026-11-06 |
 | D15 | Order of `GET` | Registration order, ascending `id`; the row lock in D17 makes `id` order match registration order | no: the rule is explicit | Håkon, 2026-11-06 |
 | D16 | Can a registration be removed, freeing a seat? | No: the API has no such operation, so a seat stays taken | no: the API is explicit | Håkon, 2026-11-06 |
