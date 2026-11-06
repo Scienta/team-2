@@ -2,7 +2,7 @@
 
 - [x] Phase 1: `workflow/scripts/new-specs.sh` + `test-new-specs.sh` (and `harness.sh` in worktrees)
 - [x] Phase 2: Rules and permissions: the draft-PR exception, deny rules, `spec:` labels in `issues.md`
-- [ ] Phase 3: `pipeline-queue.sh`, skills `/spec-watch` and `/implement-issue`, agent `issue-implementer`
+- [x] Phase 3: `pipeline-queue.sh`, skills `/spec-watch` and `/implement-issue`, agent `issue-implementer`
 - [ ] Phase 4: Docs (`workflow/README.md`, `REVIEW.md` §1/§5), backfill `spec:` labels, finish
 - [ ] Phase 5 (after the PR, with a person watching): one supervised end-to-end run, then `/loop`
 
