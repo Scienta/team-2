@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,7 +50,7 @@ class AcceptanceTest {
         HttpResponse<String> res = decide(rejected, "REJECTED");
         assertEquals(200, res.statusCode(), res.body());
         JsonNode talk = JSON.readTree(res.body());
-        assertEquals("REJECTED", talk.get("status").asText());
+        assertEquals("REJECTED", talk.get("status").asString());
         assertEquals(rejected, talk.get("id").asLong());
         assertTrue(talk.has("ratingCount") && talk.has("averageRating") && talk.has("coSpeakerIds"), talk.toString());
 
@@ -150,8 +150,8 @@ class AcceptanceTest {
         for (String path : Arrays.asList("/talks", "/talks?sort=rating", "/talks?speakerId=" + speaker,
                 "/speakers/" + speaker + "/talks")) {
             JsonNode list = getJson(path);
-            assertEquals("WAITLISTED", talkIn(list, waitlisted, path).get("status").asText(), path);
-            assertEquals("REJECTED", talkIn(list, rejected, path).get("status").asText(), path);
+            assertEquals("WAITLISTED", talkIn(list, waitlisted, path).get("status").asString(), path);
+            assertEquals("REJECTED", talkIn(list, rejected, path).get("status").asString(), path);
         }
     }
 
@@ -352,11 +352,11 @@ class AcceptanceTest {
 
     private void assertStatus(int code, HttpResponse<String> res, String status) throws Exception {
         assertEquals(code, res.statusCode(), res.body());
-        assertEquals(status, JSON.readTree(res.body()).get("status").asText());
+        assertEquals(status, JSON.readTree(res.body()).get("status").asString());
     }
 
     private String statusOf(long talk) throws Exception {
-        return getJson("/talks/" + talk).get("status").asText();
+        return getJson("/talks/" + talk).get("status").asString();
     }
 
     private HttpResponse<String> decide(long talk, String status) throws Exception {

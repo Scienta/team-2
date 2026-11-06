@@ -22,7 +22,8 @@ decisions at the end.
 ## Decisions
 
 The feature request isn't a spec: it doesn't give status codes, edge cases or error handling. Every
-answer here is ours until a person has asked the product owner. **Ask the PO** about every row whose
+answer here is ours until a person on the team has approved it (we have no product owner:
+`.claude/rules/no-product-owner.md`). **Ask the PO** about every row whose
 behaviour a harness check can see (status codes, idempotency, ordering) before the claim.
 
 | ID | Question | Our answer | Ask the PO? | Approved by (person, PO answer) |

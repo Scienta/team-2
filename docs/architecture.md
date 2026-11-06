@@ -2,10 +2,14 @@
 
 ## Stack
 
-- Java 11, Spring Boot 2.7.18 (`spring-boot-starter-web`, `-jdbc`, `-validation`, `-actuator`)
+- Java 25, Spring Boot 4.1.2 / Spring Framework 7.0 (`spring-boot-starter-webmvc`, `-jdbc`, `-validation`,
+  `-actuator`); Jackson 3 with `spring.jackson.use-jackson2-defaults=true`. Upgraded from Java 11 /
+  Boot 2.7 in ADR [0002](../workflow/adrs/0002-spring-boot-4-java-25.md)
 - PostgreSQL through plain `JdbcTemplate`; no ORM (the JPA starter is commented out in `pom.xml`)
-- Tests: JUnit 5 with Testcontainers Postgres 1.21.4
-- Packaged as `target/cfp.jar`, shipped in a two-stage `Dockerfile` (Maven build, Temurin 11 JRE)
+- Tests: JUnit 5 with Testcontainers 2 Postgres (`testcontainers-postgresql`, version from the Boot BOM);
+  Mockito loaded as a `-javaagent` by surefire. Maven wrapper 3.9.16
+- Packaged as `target/cfp.jar`, shipped in a two-stage `Dockerfile` (`maven:3.9-eclipse-temurin-25` build,
+  `eclipse-temurin:25-jre` runtime)
 
 ## Layers
 
@@ -24,6 +28,7 @@ HTTP ──> Controllers ──> ConferenceService ──> DAOs ──> Postgres
 | DAOs | `SpeakerDao`, `TalkDao`, `RatingDao` | SQL via `JdbcTemplate`. Speakers come back as `Map<String, Object>`, talks as `TalkDto`. |
 | DTOs / forms | `SpeakerForm`, `TalkForm`, `TalkDto` | Request and response bodies. `SpeakerForm` has bean-validation annotations; `TalkForm` is validated by hand in the service. |
 | Support | `Utils`, `NotificationService`, `VersionInfoContributor` | Date formatting, CSV escaping, rounding; e-mail stub (logs only, `cfp.mail.enabled=false`); versions on `/actuator/info`. |
+| Web config | `WebConfig`, `FieldErrorMixin` | `UrlHandlerFilter` strips a trailing slash before routing (the speakers spec requires `/speakers/` to work; Spring 6 stopped matching it). A second filter forces `charset=UTF-8` on error bodies too (Tomcat 11 drops it on the `/error` forward). The mixin keeps Boot 2.7's key order in the entries of a 400's `errors` array. |
 
 `HealthController` deliberately bypasses the service: it runs `SELECT 1` with a 5 s query timeout on
 a single-thread executor, so concurrent `/health` calls share one probe and a hung database can't
@@ -71,6 +76,12 @@ talk wait for each other, so a final status is never overwritten (`AcceptanceTes
 | `spring.datasource.url` | built from `PGHOST`, `PGPORT`, `PGDATABASE`, `PGSSLMODE` | Defaults to local Compose Postgres, `sslmode=disable` |
 | `spring.datasource.username` / `password` | `PGUSER` / `PGPASSWORD` | Default `cfp` / `cfp` |
 | `spring.sql.init.mode` | `always` | `schema.sql` runs on every start-up |
-| `server.error.include-message` | `always` | The `ResponseStatusException` reason appears in error bodies |
-| `spring.jackson.parser.allow-comments` | `true` | Request JSON may contain comments |
+| `spring.web.error.include-message` | `always` | The `ResponseStatusException` reason appears in error bodies (was `server.error.include-message`) |
+| `spring.web.error.include-binding-errors` | `always` | Bean-validation 400s carry an `errors` array (was `server.error.include-binding-errors`) |
+| `spring.servlet.encoding.force` | `true` | JSON answers are `application/json;charset=UTF-8` (was `server.servlet.encoding.force`) |
+| `spring.jackson.json.read.allow-java-comments` | `true` | Request JSON may contain comments (was `spring.jackson.parser.allow-comments`) |
+| `spring.jackson.use-jackson2-defaults` | `true` | Jackson 3 keeps Jackson 2's defaults: key order, dates, lenient parsing |
 | `GIT_SHA` (env) | baked in by the `Dockerfile` | Reported as `version` by `/health` |
+
+Boot 4 renamed four of these. It ignores the old names silently, so a missed rename only shows up
+as changed behaviour; `WireFormatTest` covers each one.

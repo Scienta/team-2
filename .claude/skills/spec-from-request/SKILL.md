@@ -12,5 +12,5 @@ description: Turn a harness feature request into our spec with a decisions table
    removing what isn't there, limits, ordering, concurrency. Propose an answer for each, consistent
    with the base specs in `workflow/specs/` and the existing code. Mark "Ask the PO? yes" for
    anything a harness check can observe.
-4. Stop. List the "ask the PO" questions for the person on the team, as short questions they can
-   paste. Don't start `/make-plan` until a person has approved the table.
+4. Stop. List the "ask the PO" questions for the person on the team, each with options and a
+   recommendation (`.claude/rules/no-product-owner.md`). Don't start `/make-plan` until a person has approved the table.
