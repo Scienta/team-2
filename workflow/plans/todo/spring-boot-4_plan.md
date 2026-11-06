@@ -4,7 +4,7 @@
 - [x] Phase 1: Pin today's wire behaviour on Java 11 / Boot 2.7 (`WireFormatTest`, `snapshot-api.sh`, baseline)
 - [x] Phase 2: Java 25 + Spring Boot 3.5.x, tests and snapshot diff green
 - [x] Phase 3: Spring Boot 4.1.2, tests and snapshot diff green; `AGENTS.md` team note
-- [ ] Phase 4: Dockerfile and CI on Java 25; container run locally, snapshot diff, Hurl example
+- [x] Phase 4: Dockerfile and CI on Java 25; container run locally, snapshot diff, Hurl example
 - [ ] Phase 5: Docs, rules, ADR, `REVIEW.md`; plan to done; hand over the production checklist
 
 ## Context (read this after a restart)
