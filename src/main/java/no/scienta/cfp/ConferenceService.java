@@ -247,7 +247,7 @@ public class ConferenceService {
         lockTalkAndCheckSpeaker(talkId, speakerId);
         TalkDto talk = getTalk(talkId);
         if (talk.speakerId == speakerId) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "the main speaker can't also be a co-speaker");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "the main speaker can't also be a co-speaker");
         }
         if (talk.coSpeakerIds.contains(speakerId)) {
             return talk;
@@ -262,7 +262,9 @@ public class ConferenceService {
     @Transactional
     public TalkDto removeCoSpeaker(long talkId, long speakerId) {
         lockTalkAndCheckSpeaker(talkId, speakerId);
-        talkDao.removeCoSpeaker(talkId, speakerId);
+        if (talkDao.removeCoSpeaker(talkId, speakerId) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "not a co-speaker of this talk");
+        }
         return getTalk(talkId);
     }
 
@@ -319,6 +321,9 @@ public class ConferenceService {
         if (reviewerId < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "reviewerId must be positive");
         }
+        if (!talkDao.exists(talkId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "talk not found");
+        }
         Object score = body.get("score");
         if (!(score instanceof Integer)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "score must be a whole number");
@@ -326,9 +331,6 @@ public class ConferenceService {
         int s = (Integer) score;
         if (s < 1 || s > 5) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "score must be 1-5");
-        }
-        if (!talkDao.exists(talkId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "talk not found");
         }
         String now = Utils.now();
         ratingDao.save(talkId, reviewerId, s, now);

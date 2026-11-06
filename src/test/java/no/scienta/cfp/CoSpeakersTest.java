@@ -89,7 +89,7 @@ class CoSpeakersTest {
         long main = newSpeaker();
         long talk = newTalk(main);
 
-        assertEquals(409, send("PUT", path(talk, main), null).statusCode());
+        assertEquals(400, send("PUT", path(talk, main), null).statusCode());
         assertCoSpeakers(send("GET", "/talks/" + talk, null));
     }
 
@@ -117,12 +117,13 @@ class CoSpeakersTest {
     }
 
     @Test
-    void removingSomeoneWhoIsNotACoSpeakerChangesNothing() throws Exception {
+    void removingSomeoneWhoIsNotACoSpeakerIsNotFound() throws Exception {
         long talk = newTalk(newSpeaker());
         long first = newSpeaker();
         send("PUT", path(talk, first), null);
 
-        assertCoSpeakers(send("DELETE", path(talk, newSpeaker()), null), first);
+        assertEquals(404, send("DELETE", path(talk, newSpeaker()), null).statusCode());
+        assertCoSpeakers(send("GET", "/talks/" + talk, null), first);
     }
 
     @Test

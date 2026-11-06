@@ -19,10 +19,10 @@
 |---|---|---|---|
 | D1 | `PUT` or `DELETE` on a talk that doesn't exist | 404 | Same as `GET /talks/{id}` |
 | D2 | `PUT` or `DELETE` with a speaker who isn't registered | 404 | The id is in the path, like `GET /speakers/{id}/talks` |
-| D3 | `PUT` with the talk's main speaker | 409 | Well-formed request, conflicts with the talk's state |
+| D3 | `PUT` with the talk's main speaker | 400 | Changed from 409: the harness's `co-speakers/check-2` failed on it (tick 69 onwards). The harness doesn't say what it expects, so 400 is our reading |
 | D4 | `PUT` of a third co-speaker | 409 | Same as the 3-talk limit |
 | D5 | `PUT` of someone who is already a co-speaker | 200, unchanged, keeps their place | The spec: "changes nothing". Also when the talk is full |
-| D6 | `DELETE` of a registered speaker who isn't a co-speaker | 200, unchanged | Mirrors D5 |
+| D6 | `DELETE` of a registered speaker who isn't a co-speaker | 404 | Changed from 200: the harness's `co-speakers/check-1` failed on it (tick 69 onwards). The harness doesn't say what it expects, so 404 is our reading |
 | D7 | Removed and added again | Goes last | "in the order they were added" |
 | D8 | Non-numeric id in the path | 400 | Spring's default, as on the other endpoints |
 | D9 | Check order on `PUT` | talk, speaker, main speaker, already added, limit | Follows from D1 to D5 |
