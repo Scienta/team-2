@@ -181,7 +181,8 @@ Check: `./mvnw test -Dtest=ProgrammeTest` green; `./mvnw package` green. Commit:
 
 0. In `ProgrammeService.schedule`, catch `DuplicateKeyException` on insert → 409 with P3's reason
    (moved here from Phase 2). **Not done:** the locks make it unreachable, so it would be an untested line; the
-   constraints still guard the data, and a 500 makes a broken lock visible. Decision for the human.
+   constraints still guard the data, and a 500 makes a broken lock visible. Approved by Eirik,
+   2026-11-06: leave it out.
 1. In `ProgrammeTest`, start the requests together with `CompletableFuture`, in 10 rounds. **Each
    round** (S3): `TRUNCATE programme_entry` and new talks with new speakers. Each test asserts the
    loser's reason, D19's "the 409 it would get if it came second" (S2):
