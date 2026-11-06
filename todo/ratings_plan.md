@@ -4,7 +4,7 @@
 - [x] Phase 1: Unit tests for the rating display format (the D2 guard failed on local JDK 21: U+202F before AM/PM. Fixed `Utils.usShort` with the explicit pattern `M/d/yy, h:mm a`; prod JDK 11 was unaffected, but a JDK upgrade would have broken it)
 - [x] Phase 2: Integration tests for current ratings behaviour (`RatingsTest`, all green; 14 tests, no new bugs found)
 - [x] Phase 3: E1 error precedence, red then green (E1 approved: 404; red confirmed on 2 tests, then green)
-- [ ] Phase 4: Hurl examples for the edge cases
+- [x] Phase 4: Hurl examples for the edge cases (`examples/ratings-edge.hurl`, all 4 example files green against a local service)
 - [ ] Phase 5: Update `docs/`: record the known-issue decisions, and keep api, architecture and operations in line with the code
 
 Revised after the review in `ratings_plan_review.md` (findings 1 to 5 and the note on concurrency are addressed).
