@@ -2,7 +2,7 @@
 
 - [x] Phase 1: Edge-case Hurl files per released feature in `examples/` (speakers, talks, ratings, co-speakers, acceptance)
 - [x] Phase 2: CI job `hurl` in `.github/workflows/deploy.yml`: build the image, run the suite twice on one database
-- [ ] Phase 3: Docs (`workflow/README.md`, `.claude/rules/project.md`, `examples/run.sh` header), `REVIEW.md` §1/§5, plan to done
+- [x] Phase 3: Docs (`workflow/README.md`, `.claude/rules/project.md`, `examples/run.sh` header), `REVIEW.md` §1/§5, plan to done
 
 ## Context (read this after a restart)
 

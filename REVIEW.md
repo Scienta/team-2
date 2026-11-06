@@ -55,6 +55,11 @@ for PRs and pushes to main. For competition speed, main deployment runs independ
 in parallel with the build/test job; a failing main test does not prevent deployment.
 PRs never deploy; manual deployment is main-only.
 
+A second CI job, `hurl`, runs the image we deploy (`workflow/scripts/local-rollout.sh`) with every
+`examples/*.hurl`, including our spec-based checks `examples/<slug>-rules.hurl`, on each PR and on
+main: twice on the same database, with a restart in between, since the harness checks run against
+old data too. Like the Maven job it doesn't hold back a deploy; a red PR check is the gate (issue #26).
+
 ## 2. How we reviewed agent output
 
 - **Plans** were reviewed by a second agent before any code was written, against the spec, the code
@@ -208,6 +213,11 @@ current status, not the timeline.
 - **Transcript replay** [`workflow/scripts/transcript-to-hurl.sh`](workflow/scripts/transcript-to-hurl.sh):
   a harness check's requests as a Hurl file to replay locally, with production's answers as comments.
   With request logging (`RequestLogFilter`), the harness's traffic shows in the container logs.
+- **Spec-based Hurl checks** [`examples/*-rules.hurl`](examples/) with the CI job `hurl` in
+  [`deploy.yml`](.github/workflows/deploy.yml): 134 requests over five features, each commented with
+  the spec rule or decision it checks, in the harness's data shapes, and re-runnable on a database
+  that keeps its data. The job pattern (build the deployed image, compose it with Postgres, gate on
+  `/health`, run Hurl twice around a restart) works for any HTTP service with a Dockerfile.
 
 ## 6. One thing we'd do differently
 

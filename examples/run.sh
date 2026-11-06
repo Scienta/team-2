@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Runs the base specs' published Hurl examples against a running service.
-# They are the happy path only, and not a gate: passing them doesn't mean the harness's checks pass.
+# Runs every examples/*.hurl against a running service: the published happy-path examples and our
+# spec-based checks (*-rules.hurl). CI runs them against the built image (job hurl in deploy.yml).
+# Passing them doesn't mean the harness's checks pass: those are opaque.
 #
 # Usage: examples/run.sh [base-url]        (default http://localhost:8080)
 # Env:   HURL  the hurl binary (default: hurl on your PATH; https://hurl.dev)
