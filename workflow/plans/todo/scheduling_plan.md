@@ -1,7 +1,7 @@
 # Plan: Programme scheduling
 
 - [ ] Phase 0: Commit the plan and its review; get Eirik's OK on the S4 wording in the spec
-- [ ] Phase 1: The venue and the rules as pure code (`Venue`, `SchedulingRules`), with unit tests
+- [x] Phase 1: The venue and the rules as pure code (`Venue`, `SchedulingRules`), with unit tests
 - [ ] Phase 2: `PUT` and `GET /programme/{room}/{slot}` (D1 to D10, D13 to D18, D20), with `ProgrammeTest`
 - [ ] Phase 3: `DELETE /programme/{room}/{slot}` (D11, D12, D18)
 - [ ] Phase 4: Concurrency (D19): tests that assert the loser's reason, so removing either lock fails one; green 3 runs in a row; then offer the push
