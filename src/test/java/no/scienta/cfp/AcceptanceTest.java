@@ -8,8 +8,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -239,6 +242,106 @@ class AcceptanceTest {
                 "{\"title\":\"Talk\",\"format\":\"PRESENTATION\",\"level\":\"BEGINNER\",\"speakerId\":" + speaker + "}",
                 "application/json");
         assertEquals(409, fourth.statusCode(), fourth.body());
+    }
+
+    // ---------------------------------------------------------------- concurrency (D15)
+    // The exact counts rely on D5: a repeated decision or withdrawal is 409. Update them if D5 changes.
+
+    @Test
+    void concurrentDecisionsLeaveALegalState() throws Exception {
+        long talk = newTalk(newSpeaker());
+        rateAll(talk, 4, 5);
+        List<Sent> sent = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            sent.add(decideAsync(talk, "ACCEPTED"));
+            sent.add(decideAsync(talk, "REJECTED"));
+        }
+        List<Sent> ok = winners(sent);
+        assertEquals(1, ok.size());
+        assertEquals(ok.get(0).what, statusOf(talk));
+    }
+
+    @Test
+    void concurrentWithdrawAndReject() throws Exception {
+        long speaker = newSpeaker();
+        long talk = newTalk(speaker);
+        List<Sent> sent = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            sent.add(withdrawAsync(talk, speaker));
+            sent.add(decideAsync(talk, "REJECTED"));
+        }
+        List<Sent> ok = winners(sent);
+        assertEquals(1, ok.size());
+        assertEquals(ok.get(0).what, statusOf(talk));
+    }
+
+    @Test
+    void concurrentWaitlistThenAccept() throws Exception {
+        long talk = newTalk(newSpeaker());
+        rateAll(talk, 4, 5);
+        List<Sent> sent = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            sent.add(decideAsync(talk, "WAITLISTED"));
+            sent.add(decideAsync(talk, "ACCEPTED"));
+        }
+        List<Sent> ok = winners(sent);
+        assertEquals(1, count(ok, "ACCEPTED"));
+        assertTrue(count(ok, "WAITLISTED") <= 1);
+        assertEquals("ACCEPTED", statusOf(talk));
+    }
+
+    @Test
+    void concurrentAcceptAndWithdraw() throws Exception {
+        long speaker = newSpeaker();
+        long talk = newTalk(speaker);
+        rateAll(talk, 4, 5);
+        List<Sent> sent = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            sent.add(decideAsync(talk, "ACCEPTED"));
+            sent.add(withdrawAsync(talk, speaker));
+        }
+        List<Sent> ok = winners(sent);
+        assertEquals(1, count(ok, "WITHDRAWN"));
+        assertTrue(count(ok, "ACCEPTED") <= 1);
+        assertEquals("WITHDRAWN", statusOf(talk));
+    }
+
+    /** One request in flight, and the status it asks for. */
+    private static final class Sent {
+        final String what;
+        final CompletableFuture<HttpResponse<String>> response;
+
+        Sent(String what, CompletableFuture<HttpResponse<String>> response) {
+            this.what = what;
+            this.response = response;
+        }
+    }
+
+    /** Waits for every request; all must be 200 or 409. Returns the 200s. */
+    private static List<Sent> winners(List<Sent> sent) {
+        List<Sent> ok = new ArrayList<>();
+        for (Sent s : sent) {
+            HttpResponse<String> res = s.response.join();
+            assertTrue(res.statusCode() == 200 || res.statusCode() == 409, res.statusCode() + " " + res.body());
+            if (res.statusCode() == 200) {
+                ok.add(s);
+            }
+        }
+        return ok;
+    }
+
+    private static long count(List<Sent> sent, String what) {
+        return sent.stream().filter(s -> s.what.equals(what)).count();
+    }
+
+    private Sent decideAsync(long talk, String status) {
+        return new Sent(status, http.sendAsync(request("PUT", "/talks/" + talk + "/status",
+                "{\"status\":\"" + status + "\"}", "application/json"), HttpResponse.BodyHandlers.ofString()));
+    }
+
+    private Sent withdrawAsync(long talk, long speaker) {
+        return new Sent("WITHDRAWN", http.sendAsync(request("POST", "/talks/" + talk + "/withdraw",
+                "{\"speakerId\":" + speaker + "}", "application/json"), HttpResponse.BodyHandlers.ofString()));
     }
 
     // ---------------------------------------------------------------- helpers
