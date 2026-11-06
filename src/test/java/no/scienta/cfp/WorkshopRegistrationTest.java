@@ -104,11 +104,15 @@ class WorkshopRegistrationTest {
     }
 
     @Test
-    void talkThatIsNotAWorkshopIs404() throws Exception {
-        long talk = newTalk(newSpeaker(), "PRESENTATION");
-        setStatus(talk, "ACCEPTED");
-        assertEquals(404, register(talk, "Ada", "ada@example.com").statusCode());
-        assertEquals(404, get(talk).statusCode());
+    void talkThatIsNotAWorkshop() throws Exception {
+        // D2, revised: the harness's check-2 fails on 404 for an accepted LIGHTNING_10 talk
+        for (String format : new String[] {"LIGHTNING_10", "PRESENTATION"}) {
+            long talk = newTalk(newSpeaker(), format);
+            setStatus(talk, "ACCEPTED");
+            assertEquals(409, register(talk, "Ada", "ada@example.com").statusCode(), format);
+            assertEquals(400, register(talk, "", "ada@example.com").statusCode(), format + ": 400 before 409");
+            assertEquals(404, get(talk).statusCode(), format);
+        }
     }
 
     @Test
@@ -294,7 +298,7 @@ class WorkshopRegistrationTest {
         assertEquals(400, register(submitted, "Ada", "not-an-email").statusCode(), "the email before the status");
 
         long presentation = newTalk(newSpeaker(), "PRESENTATION");
-        assertEquals(404, post(presentation, badField).statusCode(), "not a workshop before the fields");
+        assertEquals(400, post(presentation, badField).statusCode(), "the fields before not-a-workshop (409, D2 revised)");
 
         long full = acceptedWorkshop();
         for (int i = 0; i < 20; i++) {
