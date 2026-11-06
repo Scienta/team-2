@@ -33,6 +33,13 @@ Match the existing code:
 - Behaviour visible over HTTP also gets a Hurl example in `examples/`
 - Line coverage may not drop: see `workflow/coverage/README.md`
 
+## Harness Token
+
+- Never copy, move, `cat`, print or `Read` `.fagdag/harness-token`, also not to get a script working.
+  Only `workflow/scripts/harness.sh` reads it, and nothing else should need to.
+- In a git worktree (agent worktrees included), `harness.sh` finds the main checkout's token
+  itself. If it says there's no token, stop and ask a person to paste it into the main checkout.
+
 ## Prod-like Local Run
 
 Before a PR that changes HTTP behaviour, run the image we deploy, not just `java -jar`:

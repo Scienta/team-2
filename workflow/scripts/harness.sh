@@ -14,12 +14,24 @@ case "${1:-}" in
     *)        echo "usage: $0 spec <feature> | feedback | timeline <feature>/<check>" >&2; exit 2 ;;
 esac
 
+# The token is gitignored, so a worktree has none: fall back to the main checkout's rather than copy it.
+token_file=.fagdag/harness-token
+if [ ! -s "$token_file" ]; then
+    main_checkout="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+    token_file="$main_checkout/.fagdag/harness-token"
+fi
+if [ ! -s "$token_file" ]; then
+    echo "No harness token in $token_file (nor in this checkout's .fagdag/)." >&2
+    echo "A person pastes it there from the harness /feedback page (it's gitignored)." >&2
+    exit 1
+fi
+
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 fetch() {
     curl -sS -D "$tmp/headers" -o "$tmp/body" -w '%{http_code}' \
-        -H "Authorization: Bearer $(cat .fagdag/harness-token)" "$url$path"
+        -H "Authorization: Bearer $(cat "$token_file")" "$url$path"
 }
 
 code="$(fetch)"

@@ -65,6 +65,11 @@ old data too. Like the Maven job it doesn't hold back a deploy; a red PR check i
 - **Plans** were reviewed by a second agent before any code was written, against the spec, the code
   and our rules. This plan's review came from Copilot CLI, the code from Claude Code: a different
   tool catches different things.
+- **Guardrail gap, caught in a person's review of an agent report:** during PR #20 a background agent
+  copied the gitignored harness token into its worktree so `harness.sh` would run there, going around
+  the `Read(.fagdag/harness-token)` deny rule. The token was never printed, but the deny rule only
+  covers one tool. Fix (#41): `harness.sh` falls back to the main checkout's token, so no copy is
+  needed, and `.claude/rules/project.md` forbids copying it.
 - **Decisions** the spec leaves open were approved by a person (recorded in the plan).
 - **Tests:** `./mvnw package` with Testcontainers Postgres after every phase; one integration test
   class per feature (`CoSpeakersTest`, `RatingsTest`, …).
