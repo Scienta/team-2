@@ -50,6 +50,12 @@ exhaust threads or the 5-connection pool.
 exists (404), validates `score`, then upserts with `INSERT … ON CONFLICT (talk_id, reviewer_id) DO UPDATE`, so a
 reviewer has at most one rating per talk even under concurrent requests.
 
+**Decide on or withdraw a talk** (`PUT /talks/{id}/status`, `POST /talks/{id}/withdraw`): in one
+transaction, `TalkDao.lock` takes the talk's row lock (`SELECT … FOR UPDATE`, 404 if none), then
+the talk is re-read in a separate statement, checked against the state machine
+(`ConferenceService.allowed`) and written with `TalkDao.updateStatus`. Concurrent decisions on one
+talk wait for each other, so a final status is never overwritten (`AcceptanceTest.concurrent*`).
+
 **Read a talk**: `TalkDao` loads the row, then `ConferenceService.addRatings` adds `ratingCount` and
 `averageRating` from `RatingDao.stats`, or `RatingDao.statsFor` (one query for the whole list) for lists.
 

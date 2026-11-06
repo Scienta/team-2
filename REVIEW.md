@@ -69,6 +69,14 @@ the talks spec allows three. The plan review caught it before execution; the tes
 on a 409 before testing any ranking. The review of the reorg plan also caught that a per-line
 HTML-comment check would have reported an empty claim-log section as filled.
 
+**Bugs the acceptance plan review caught** (`workflow/plans/done/acceptance_plan_review.md`):
+B1, the withdrawal check compared the body's `speakerId` (an `Integer` from Jackson) with
+`TalkDto.speakerId` (a boxed `Long`) using `!=`, which compares references: every withdrawal would
+have got 403, including the talk's own speaker. S1, a concurrency test accepted "ACCEPTED or
+WAITLISTED" as the final state, which would have passed a stale-read bug. Both fixed in the plan
+before any code was written. We also checked that the concurrency tests have teeth: with the row
+lock removed, all four fail (up to 6 conflicting decisions answered 200).
+
 **Bug a person's PR review caught:** the coverage ratchet (PR #8) checked each branch against its
 own floor. The reviewer pointed out that two parallel PRs can each pass and still break `main`
 together, unnoticed, since the CI `tests` job has `continue-on-error`. Fix: update the branch with
@@ -119,6 +127,7 @@ Merging `main` (coverage ratchet, PR #8) into the Boot 4 branch turned up two mo
 | Ratings | claimed (base feature) | 0 | Shipped; then verified by `workflow/plans/done/ratings_plan.md` (`RatingsTest`, Hurl edge cases, E1 fix on branch `ratings-verify`); harness checks 1–5 OK |
 | Co-speakers | claimed | 68 | `CoSpeakersTest` (11 tests incl. concurrency), `examples/co-speakers.hurl`, `workflow/plans/done/co_speakers_plan.md`. At tick 81: checks 1 and 2 FAULTY, see §4 |
 | Spring Boot 4 | not yet claimed | TODO(human): tick when claimed | `WireFormatTest` (11 tests, written on 2.7 before the upgrade, assertions unchanged since `b2e8528`), `snapshot-api.sh` diff identical to the 2.7 baseline on Boot 3.5, 4.1.2 jar and the `linux/amd64` image, `examples/spring-boot-4.hurl`, all 60 tests green on JDK 25; `workflow/plans/done/spring-boot-4_plan.md`. TODO(human): after deploy, the plan's post-deploy checklist (harness base checks OK over ≥ 5 ticks) |
+| Acceptance | not claimed yet (PR for issue #11) | TODO(human): tick | `AcceptanceTest` (19 tests: every transition, error codes, 4 concurrency tests failing without the lock), `examples/acceptance.hurl` green locally, `workflow/specs/acceptance.md` D1–D16. TODO(human): checks after deploy |
 
 ## 4. What the harness caught that we didn't
 

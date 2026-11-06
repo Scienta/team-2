@@ -25,9 +25,9 @@ workflow/coverage/line-coverage.sh
 ```
 
 ```
-Lines covered: 306/396 (77.3 %)
-Ratio:         0.772 (rounded down, the value for coverage.line.minimum)
-Floor in pom:  0.772
+Lines covered: 340/430 (79.1 %)
+Ratio:         0.790 (rounded down, the value for coverage.line.minimum)
+Floor in pom:  0.790
 ```
 
 ## The ratchet

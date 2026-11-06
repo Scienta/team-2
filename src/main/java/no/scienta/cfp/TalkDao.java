@@ -65,6 +65,10 @@ public class TalkDao {
         return !jdbc.queryForList("SELECT id FROM talk WHERE id = ? FOR UPDATE", id).isEmpty();
     }
 
+    public void updateStatus(long id, String status) {
+        jdbc.update("UPDATE talk SET status = ? WHERE id = ?", status, id);
+    }
+
     public void addCoSpeaker(long talkId, long speakerId) {
         jdbc.update("INSERT INTO talk_co_speaker (talk_id, speaker_id) VALUES (?, ?)", talkId, speakerId);
     }
