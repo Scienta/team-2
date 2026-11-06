@@ -46,7 +46,7 @@ the talk exists, then upserts with `INSERT … ON CONFLICT (talk_id, reviewer_id
 reviewer has at most one rating per talk even under concurrent requests.
 
 **Read a talk**: `TalkDao` loads the row, then `ConferenceService.addRatings` adds `ratingCount` and
-`averageRating` from `RatingDao.stats` (one query per talk).
+`averageRating` from `RatingDao.stats`, or `RatingDao.statsFor` (one query for the whole list) for lists.
 
 ## Concurrency and platform constraints
 

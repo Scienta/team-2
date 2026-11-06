@@ -39,7 +39,7 @@ here.
 
 | # | Issue | Where |
 |---|---|---|
-| P1 | N+1 queries: one rating query per talk in every list, plus one speaker query per talk in stats and CSV | `ConferenceService.addRatings`, `statistics`, `ReportController` |
+| P1 | N+1 queries: one speaker query per talk in stats and CSV. Fixed for ratings: lists now use one query (`RatingDao.statsFor`) | `ConferenceService.statistics`, `ReportController` |
 
 ## Observability
 
